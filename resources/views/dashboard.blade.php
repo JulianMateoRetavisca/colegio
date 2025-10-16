@@ -7,7 +7,12 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{ route('dashboard') }}">
-            <i class="fas fa-file-invoice-dollar me-2"></i>CuentasCobro
+            <!-- Libro azul inline SVG -->
+            <svg class="me-2" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M3 6.5C3 5.12 4.12 4 5.5 4H16a2 2 0 0 1 2 2v11c0 1.1-.9 2-2 2H5.5A2.5 2.5 0 0 1 3 16.5v-10z" fill="#1E3A8A"/>
+                <path d="M21 6.5c0-1.38-1.12-2.5-2.5-2.5H18v13h.5A2.5 2.5 0 0 0 21 14.5v-8z" fill="#183B8A"/>
+                <path d="M5 7.5h10v1H5zM5 11.5h10v1H5z" fill="#2B6CB0"/>
+            </svg>
         </a>
         
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
