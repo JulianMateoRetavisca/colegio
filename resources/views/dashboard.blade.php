@@ -7,7 +7,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{ route('dashboard') }}">
-            <i class="fas fa-file-invoice-dollar me-2"></i>CuentasCobro
+            <i class="fas fa-file-invoice-dollar me-2"></i>Colegio
         </a>
         
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -58,7 +58,7 @@
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                     </a>
                     <a class="nav-link" href="#">
-                        <i class="fas fa-file-invoice me-2"></i>Cuentas de Cobro
+                        <i class="fas fa-file-invoice me-2"></i>Colegio
                     </a>
                     <a class="nav-link" href="#">
                         <i class="fas fa-plus-circle me-2"></i>Nueva Cuenta
@@ -83,7 +83,7 @@
                 <div class="row mb-4">
                     <div class="col-12">
                         <h1 class="h3 text-dark">¡Bienvenido, {{ Auth::user()->name }}!</h1>
-                        <p class="text-muted">Gestiona tus cuentas de cobro de manera eficiente</p>
+                        <p class="text-muted">Gestiona tus Colegio de manera eficiente</p>
                     </div>
                 </div>
 

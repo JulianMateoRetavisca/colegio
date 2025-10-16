@@ -19,7 +19,7 @@ class RolesModel extends Model
 
     public function usuarios()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'roles_id');
     }
 
     public function tienePermiso($permiso)
@@ -30,11 +30,13 @@ class RolesModel extends Model
     public static function obtenerRolesSistema()
     {
         return [
-            'Rector' => 'Rector',
-            'Acudiente' => 'Acudiente',
-            'Coordinador' => 'Coordinador',
+            'Admin' => 'Administrador del Sistema',
+            'Rector' => 'Rector del Colegio',
+            'CoordinadorDisciplina' => 'Coordinador de Disciplina',
+            'CoordinadorAcademico' => 'Coordinador Académico',
+            'Acudiente' => 'Padre de Familia o Acudiente',
             'Estudiante' => 'Estudiante',
-            'Docente' => 'Docente'
+            'Profesor' => 'Profesor o Docente'
         ];
     }
 

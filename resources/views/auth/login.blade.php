@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Iniciar Sesión - CuentasCobro')
+@section('title', 'Iniciar Sesión - Colegio')
 
 @section('content')
 <div class="login-container d-flex align-items-center justify-content-center">
@@ -10,7 +10,7 @@
                 <div class="login-card p-4">
                     <div class="text-center mb-4">
                         <i class="fas fa-file-invoice-dollar fa-3x text-primary mb-3"></i>
-                        <h3 class="fw-bold text-dark">CuentasCobro</h3>
+                        <h3 class="fw-bold text-dark">Colegio</h3>
                         <p class="text-muted">Inicia sesión en tu cuenta</p>
                     </div>
 

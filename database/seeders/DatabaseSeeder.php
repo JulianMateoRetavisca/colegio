@@ -15,14 +15,10 @@ class DatabaseSeeder extends Seeder
     {
         // Ejecutar seeders en orden correcto
         $this->call([
-            RolesSeeder::class,      // Primero crear los roles
-            RectorSeeder::class,     // Luego crear el usuario rector
+            RolesSeeder::class,                      // Primero crear los roles
+            UsuariosAdministradoresSeeder::class,    // Luego crear usuarios admin y rector
         ]);
         
-        // Comentado el usuario de prueba para evitar conflictos
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        $this->command->info('✓ Base de datos poblada exitosamente.');
     }
 }
