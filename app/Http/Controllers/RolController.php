@@ -8,15 +8,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
+
 class RolController extends Controller
 {
-    /**
-     * Constructor - Middleware de autenticación
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
 
     /**
      * Mostrar lista de todos los roles
