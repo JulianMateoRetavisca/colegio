@@ -109,17 +109,27 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label d-block">Permisos por módulo</label>
+                        <div class="d-flex gap-2 mb-3">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="marcar_todo">Marcar todo</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="desmarcar_todo">Desmarcar todo</button>
+                        </div>
                         <div class="row g-3">
                             @foreach($gruposPermisos as $modulo => $permisos)
                                 <div class="col-lg-6">
                                     <div class="card h-100">
-                                        <div class="card-header fw-semibold">{{ $modulo }}</div>
+                                        <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                                            <span>{{ $modulo }}</span>
+                                            <div class="form-check form-check-inline m-0">
+                                                <input class="form-check-input marcar-modulo" type="checkbox" id="marcar_modulo_{{ Str::slug($modulo) }}" data-modulo="{{ Str::slug($modulo) }}">
+                                                <label class="form-check-label" for="marcar_modulo_{{ Str::slug($modulo) }}">Seleccionar todo</label>
+                                            </div>
+                                        </div>
                                         <div class="card-body">
                                             <div class="row">
                                                 @foreach($permisos as $permiso => $desc)
                                                     <div class="col-md-12">
                                                         <div class="form-check mb-2">
-                                                            <input class="form-check-input" type="checkbox" name="permisos[]" value="{{ $permiso }}" id="permiso_{{ $permiso }}" @if(in_array($permiso, $rol->permisos ?? [])) checked @endif>
+                                                            <input class="form-check-input permiso-item permiso-{{ Str::slug($modulo) }}" type="checkbox" name="permisos[]" value="{{ $permiso }}" id="permiso_{{ $permiso }}" @if(in_array($permiso, $rol->permisos ?? [])) checked @endif>
                                                             <label class="form-check-label" for="permiso_{{ $permiso }}">{{ $desc }}</label>
                                                         </div>
                                                     </div>
@@ -131,6 +141,30 @@
                             @endforeach
                         </div>
                     </div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const marcarTodo = document.getElementById('marcar_todo');
+    const desmarcarTodo = document.getElementById('desmarcar_todo');
+    if (marcarTodo) marcarTodo.addEventListener('click', () => {
+        document.querySelectorAll('.permiso-item').forEach(cb => cb.checked = true);
+        document.querySelectorAll('.marcar-modulo').forEach(cb => cb.checked = true);
+    });
+    if (desmarcarTodo) desmarcarTodo.addEventListener('click', () => {
+        document.querySelectorAll('.permiso-item').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.marcar-modulo').forEach(cb => cb.checked = false);
+    });
+
+    document.querySelectorAll('.marcar-modulo').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            const modulo = e.target.getAttribute('data-modulo');
+            const items = document.querySelectorAll(`.permiso-${modulo}`);
+            items.forEach(it => it.checked = e.target.checked);
+        });
+    });
+});
+</script>
+@endpush
                     <button type="submit" class="btn btn-primary">Actualizar rol</button>
                     <a href="{{ route('roles.index') }}" class="btn btn-secondary">Cancelar</a>
                 </form>
