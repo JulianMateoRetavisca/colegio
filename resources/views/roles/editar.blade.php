@@ -118,7 +118,12 @@
                                 <div class="col-lg-6">
                                     <div class="card h-100">
                                         <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-                                            <span>{{ $modulo }}</span>
+                                            <span>
+                                                {{ $modulo }}
+                                                <small class="ms-2 text-muted conteo-modulo" data-modulo="{{ Str::slug($modulo) }}" data-total="{{ count($permisos) }}">
+                                                    Seleccionados: <span class="seleccionados">0</span>/{{ count($permisos) }}
+                                                </small>
+                                            </span>
                                             <div class="form-check form-check-inline m-0">
                                                 <input class="form-check-input marcar-modulo" type="checkbox" id="marcar_modulo_{{ Str::slug($modulo) }}" data-modulo="{{ Str::slug($modulo) }}">
                                                 <label class="form-check-label" for="marcar_modulo_{{ Str::slug($modulo) }}">Seleccionar todo</label>
@@ -146,13 +151,34 @@
 document.addEventListener('DOMContentLoaded', function() {
     const marcarTodo = document.getElementById('marcar_todo');
     const desmarcarTodo = document.getElementById('desmarcar_todo');
+    function actualizarConteoModulo(modulo) {
+        const items = document.querySelectorAll(`.permiso-${modulo}`);
+        const seleccionados = Array.from(items).filter(it => it.checked).length;
+        const contenedor = document.querySelector(`.conteo-modulo[data-modulo="${modulo}"]`);
+        if (contenedor) {
+            contenedor.querySelector('.seleccionados').textContent = seleccionados;
+        }
+        const toggle = document.getElementById(`marcar_modulo_${modulo}`);
+        if (toggle) {
+            const total = items.length;
+            toggle.indeterminate = seleccionados > 0 && seleccionados < total;
+            toggle.checked = seleccionados === total;
+        }
+    }
+    function actualizarTodosLosConteos() {
+        document.querySelectorAll('.conteo-modulo').forEach(el => {
+            actualizarConteoModulo(el.getAttribute('data-modulo'));
+        });
+    }
     if (marcarTodo) marcarTodo.addEventListener('click', () => {
         document.querySelectorAll('.permiso-item').forEach(cb => cb.checked = true);
         document.querySelectorAll('.marcar-modulo').forEach(cb => cb.checked = true);
+        actualizarTodosLosConteos();
     });
     if (desmarcarTodo) desmarcarTodo.addEventListener('click', () => {
         document.querySelectorAll('.permiso-item').forEach(cb => cb.checked = false);
         document.querySelectorAll('.marcar-modulo').forEach(cb => cb.checked = false);
+        actualizarTodosLosConteos();
     });
 
     document.querySelectorAll('.marcar-modulo').forEach(cb => {
@@ -160,8 +186,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const modulo = e.target.getAttribute('data-modulo');
             const items = document.querySelectorAll(`.permiso-${modulo}`);
             items.forEach(it => it.checked = e.target.checked);
+            actualizarConteoModulo(modulo);
         });
     });
+
+    // Cambios individuales actualizan conteos e indeterminate
+    document.querySelectorAll('.permiso-item').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            const clases = Array.from(e.target.classList);
+            const moduloClass = clases.find(c => c.startsWith('permiso-') && c !== 'permiso-item');
+            if (moduloClass) {
+                const modulo = moduloClass.replace('permiso-','');
+                actualizarConteoModulo(modulo);
+            }
+        })
+    });
+
+    // Inicializar conteos con estado actual
+    actualizarTodosLosConteos();
 });
 </script>
 @endpush
