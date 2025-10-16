@@ -108,13 +108,24 @@
                         <textarea name="descripcion" id="descripcion" class="form-control" required @if($esRolSistema) readonly @endif>{{ old('descripcion', $rol->descripcion) }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Permisos</label>
-                        <div class="row">
-                            @foreach($permisosDisponibles as $permiso => $desc)
-                                <div class="col-md-4">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="permisos[]" value="{{ $permiso }}" id="permiso_{{ $permiso }}" @if(in_array($permiso, $rol->permisos ?? [])) checked @endif>
-                                        <label class="form-check-label" for="permiso_{{ $permiso }}">{{ $desc }}</label>
+                        <label class="form-label d-block">Permisos por módulo</label>
+                        <div class="row g-3">
+                            @foreach($gruposPermisos as $modulo => $permisos)
+                                <div class="col-lg-6">
+                                    <div class="card h-100">
+                                        <div class="card-header fw-semibold">{{ $modulo }}</div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                @foreach($permisos as $permiso => $desc)
+                                                    <div class="col-md-12">
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input" type="checkbox" name="permisos[]" value="{{ $permiso }}" id="permiso_{{ $permiso }}" @if(in_array($permiso, $rol->permisos ?? [])) checked @endif>
+                                                            <label class="form-check-label" for="permiso_{{ $permiso }}">{{ $desc }}</label>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach

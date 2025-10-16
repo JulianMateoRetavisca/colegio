@@ -37,9 +37,12 @@ class RolController extends Controller
             return redirect('/dashboard')->with('error', 'No tienes permisos para crear roles.');
         }
 
-        $permisosDisponibles = $this->obtenerPermisosDisponibles();
+        [$gruposPermisos, $permisosPlano] = $this->obtenerPermisosDisponibles();
         
-        return view('roles.crear', compact('permisosDisponibles'));
+        return view('roles.crear', [
+            'gruposPermisos' => $gruposPermisos,
+            'permisosDisponibles' => $permisosPlano,
+        ]);
     }
 
     /**
@@ -83,9 +86,14 @@ class RolController extends Controller
 
         // Cargar usuarios asociados con paginación
         $usuarios = $rol->usuarios()->paginate(10);
-        $permisosDisponibles = $this->obtenerPermisosDisponibles();
+        [$gruposPermisos, $permisosPlano] = $this->obtenerPermisosDisponibles();
         
-        return view('roles.mostrar', compact('rol', 'usuarios', 'permisosDisponibles'));
+        return view('roles.mostrar', [
+            'rol' => $rol,
+            'usuarios' => $usuarios,
+            'permisosDisponibles' => $permisosPlano,
+            'gruposPermisos' => $gruposPermisos,
+        ]);
     }
 
     /**
@@ -97,11 +105,15 @@ class RolController extends Controller
             return redirect()->route('roles.index')
                 ->with('error', 'No tienes permisos para editar roles.');
         }
-
-        $permisosDisponibles = $this->obtenerPermisosDisponibles();
+        [$gruposPermisos, $permisosPlano] = $this->obtenerPermisosDisponibles();
         $esRolSistema = $this->esRolDelSistema($rol->nombre);
         
-        return view('roles.editar', compact('rol', 'permisosDisponibles', 'esRolSistema'));
+        return view('roles.editar', [
+            'rol' => $rol,
+            'permisosDisponibles' => $permisosPlano,
+            'gruposPermisos' => $gruposPermisos,
+            'esRolSistema' => $esRolSistema,
+        ]);
     }
 
     /**
@@ -314,75 +326,85 @@ class RolController extends Controller
      */
     private function obtenerPermisosDisponibles()
     {
-        return [
-            // Gestión de Usuarios
-            'gestionar_usuarios' => 'Crear, editar y eliminar usuarios del sistema',
-            'ver_usuarios' => 'Ver lista y detalles de usuarios',
-            'asignar_roles' => 'Asignar y modificar roles de usuarios',
-            
-            // Gestión de Estudiantes
-            'gestionar_estudiantes' => 'Crear, editar y eliminar estudiantes',
-            'ver_estudiantes' => 'Ver lista y detalles de estudiantes',
-            'matricular_estudiantes' => 'Realizar matrículas de estudiantes',
-            'ver_historial_academico' => 'Ver historial académico completo',
-            'gestionar_asistencia' => 'Registrar y modificar asistencia',
-            
-            // Gestión de Docentes
-            'gestionar_docentes' => 'Crear, editar y eliminar docentes',
-            'ver_docentes' => 'Ver lista y detalles de docentes',
-            'asignar_materias' => 'Asignar materias a docentes',
-            
-            // Gestión Académica
-            'registrar_notas' => 'Registrar y modificar calificaciones',
-            'ver_notas' => 'Ver calificaciones de estudiantes',
-            'aprobar_notas' => 'Aprobar calificaciones finales',
-            'crear_actividades' => 'Crear actividades y tareas',
-            'gestionar_horarios' => 'Crear y modificar horarios',
-            'gestionar_periodos' => 'Configurar periodos académicos',
-            
-            // Gestión Disciplinaria
-            'gestionar_disciplina' => 'Registrar y gestionar incidencias',
-            'ver_reportes_disciplinarios' => 'Ver reportes disciplinarios',
-            'aprobar_sanciones' => 'Aprobar sanciones disciplinarias',
-            'justificar_inasistencias' => 'Justificar ausencias de estudiantes',
-            
-            // Comunicación
-            'enviar_comunicados' => 'Enviar comunicados generales',
-            'comunicarse_acudientes' => 'Comunicación con acudientes',
-            'comunicarse_docentes' => 'Comunicación con docentes',
-            'ver_comunicados' => 'Ver comunicados recibidos',
-            
-            // Reportes
-            'ver_reportes_generales' => 'Ver reportes generales del colegio',
-            'ver_reportes_academicos' => 'Ver reportes académicos',
-            'ver_reportes_financieros' => 'Ver reportes financieros',
-            'generar_reportes' => 'Generar reportes personalizados',
-            'exportar_reportes' => 'Exportar reportes a Excel/PDF',
-            
-            // Gestión Financiera
-            'gestionar_pagos' => 'Registrar y gestionar pagos',
-            'ver_pagos' => 'Ver información de pagos',
-            'generar_recibos' => 'Generar recibos de pago',
-            'configurar_pensiones' => 'Configurar valores de pensión',
-            
-            // Configuración del Sistema
-            'configurar_sistema' => 'Acceso a configuración general',
-            'gestionar_roles' => 'Crear y modificar roles',
-            'gestionar_permisos' => 'Asignar permisos a roles',
-            'ver_logs_sistema' => 'Ver logs del sistema',
-            'hacer_respaldos' => 'Realizar respaldos de datos',
-            
-            // Permisos Personales
-            'ver_perfil_propio' => 'Ver su propio perfil',
-            'editar_perfil_propio' => 'Editar su propio perfil',
-            'cambiar_contrasena' => 'Cambiar su propia contraseña',
-            'ver_notificaciones' => 'Ver notificaciones personales',
-            
-            // Otros
-            'aprobar_permisos' => 'Aprobar solicitudes de permisos',
-            'gestionar_materias' => 'Crear y modificar materias',
-            'gestionar_cursos' => 'Crear y modificar cursos',
-            'acceso_total' => 'Acceso total al sistema (Super Admin)'
+        $grupos = [
+            'Usuarios' => [
+                'gestionar_usuarios' => 'Crear, editar y eliminar usuarios del sistema',
+                'ver_usuarios' => 'Ver lista y detalles de usuarios',
+                'asignar_roles' => 'Asignar y modificar roles de usuarios',
+            ],
+            'Estudiantes' => [
+                'gestionar_estudiantes' => 'Crear, editar y eliminar estudiantes',
+                'ver_estudiantes' => 'Ver lista y detalles de estudiantes',
+                'matricular_estudiantes' => 'Realizar matrículas de estudiantes',
+                'ver_historial_academico' => 'Ver historial académico completo',
+                'gestionar_asistencia' => 'Registrar y modificar asistencia',
+            ],
+            'Docentes' => [
+                'gestionar_docentes' => 'Crear, editar y eliminar docentes',
+                'ver_docentes' => 'Ver lista y detalles de docentes',
+                'asignar_materias' => 'Asignar materias a docentes',
+            ],
+            'Académico' => [
+                'registrar_notas' => 'Registrar y modificar calificaciones',
+                'ver_notas' => 'Ver calificaciones de estudiantes',
+                'aprobar_notas' => 'Aprobar calificaciones finales',
+                'crear_actividades' => 'Crear actividades y tareas',
+                'gestionar_horarios' => 'Crear y modificar horarios',
+                'gestionar_periodos' => 'Configurar periodos académicos',
+                'gestionar_materias' => 'Crear y modificar materias',
+                'gestionar_cursos' => 'Crear y modificar cursos',
+            ],
+            'Disciplina' => [
+                'gestionar_disciplina' => 'Registrar y gestionar incidencias',
+                'ver_reportes_disciplinarios' => 'Ver reportes disciplinarios',
+                'aprobar_sanciones' => 'Aprobar sanciones disciplinarias',
+                'justificar_inasistencias' => 'Justificar ausencias de estudiantes',
+            ],
+            'Comunicación' => [
+                'enviar_comunicados' => 'Enviar comunicados generales',
+                'comunicarse_acudientes' => 'Comunicación con acudientes',
+                'comunicarse_docentes' => 'Comunicación con docentes',
+                'ver_comunicados' => 'Ver comunicados recibidos',
+            ],
+            'Reportes' => [
+                'ver_reportes_generales' => 'Ver reportes generales del colegio',
+                'ver_reportes_academicos' => 'Ver reportes académicos',
+                'ver_reportes_financieros' => 'Ver reportes financieros',
+                'generar_reportes' => 'Generar reportes personalizados',
+                'exportar_reportes' => 'Exportar reportes a Excel/PDF',
+            ],
+            'Finanzas' => [
+                'gestionar_pagos' => 'Registrar y gestionar pagos',
+                'ver_pagos' => 'Ver información de pagos',
+                'generar_recibos' => 'Generar recibos de pago',
+                'configurar_pensiones' => 'Configurar valores de pensión',
+            ],
+            'Sistema' => [
+                'configurar_sistema' => 'Acceso a configuración general',
+                'gestionar_roles' => 'Crear y modificar roles',
+                'gestionar_permisos' => 'Asignar permisos a roles',
+                'ver_logs_sistema' => 'Ver logs del sistema',
+                'hacer_respaldos' => 'Realizar respaldos de datos',
+                'acceso_total' => 'Acceso total al sistema (Super Admin)',
+            ],
+            'Personales' => [
+                'ver_perfil_propio' => 'Ver su propio perfil',
+                'editar_perfil_propio' => 'Editar su propio perfil',
+                'cambiar_contrasena' => 'Cambiar su propia contraseña',
+                'ver_notificaciones' => 'Ver notificaciones personales',
+            ],
+            'Otros' => [
+                'aprobar_permisos' => 'Aprobar solicitudes de permisos',
+            ],
         ];
+
+        $plano = [];
+        foreach ($grupos as $grupo) {
+            foreach ($grupo as $k => $v) {
+                $plano[$k] = $v;
+            }
+        }
+
+        return [$grupos, $plano];
     }
 }
