@@ -108,9 +108,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label d-block">Permisos por módulo</label>
-                        <div class="d-flex gap-2 mb-3">
+                        <div class="d-flex flex-wrap gap-2 mb-3">
                             <button type="button" class="btn btn-outline-primary btn-sm" id="marcar_todo">Marcar todo</button>
                             <button type="button" class="btn btn-outline-secondary btn-sm" id="desmarcar_todo">Desmarcar todo</button>
+                            <button type="button" class="btn btn-outline-success btn-sm" id="expandir_todo">Expandir todo</button>
+                            <button type="button" class="btn btn-outline-dark btn-sm" id="contraer_todo">Contraer todo</button>
                         </div>
                         <div class="row g-3">
                             @foreach($gruposPermisos as $modulo => $permisos)
@@ -128,10 +130,13 @@
                                                 <label class="form-check-label" for="marcar_modulo_{{ Str::slug($modulo) }}">Seleccionar todo</label>
                                             </div>
                                         </div>
-                                        <div class="card-body">
+                                        <div class="card-body contenedor-permisos" data-modulo="{{ Str::slug($modulo) }}">
+                                            <div class="mb-3">
+                                                <input type="text" class="form-control form-control-sm buscador-modulo" placeholder="Buscar permisos en {{ $modulo }}" data-modulo="{{ Str::slug($modulo) }}">
+                                            </div>
                                             <div class="row">
                                                 @foreach($permisos as $permiso => $desc)
-                                                    <div class="col-md-12">
+                                                    <div class="col-md-12 permiso-row" data-etiqueta="{{ Str::lower($desc) }}" data-modulo="{{ Str::slug($modulo) }}">
                                                         <div class="form-check mb-2">
                                                             <input class="form-check-input permiso-item permiso-{{ Str::slug($modulo) }}" type="checkbox" name="permisos[]" value="{{ $permiso }}" id="permiso_{{ $permiso }}">
                                                             <label class="form-check-label" for="permiso_{{ $permiso }}">{{ $desc }}</label>
@@ -150,6 +155,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const marcarTodo = document.getElementById('marcar_todo');
     const desmarcarTodo = document.getElementById('desmarcar_todo');
+    const expandirTodo = document.getElementById('expandir_todo');
+    const contraerTodo = document.getElementById('contraer_todo');
     function actualizarConteoModulo(modulo) {
         const items = document.querySelectorAll(`.permiso-${modulo}`);
         const seleccionados = Array.from(items).filter(it => it.checked).length;
@@ -180,11 +187,30 @@ document.addEventListener('DOMContentLoaded', function() {
         actualizarTodosLosConteos();
     });
 
+    // Expandir/Contraer todo
+    function setModulosVisibles(visible) {
+        document.querySelectorAll('.contenedor-permisos').forEach(body => {
+            if (visible) {
+                body.classList.remove('d-none');
+            } else {
+                body.classList.add('d-none');
+            }
+        });
+    }
+    if (expandirTodo) expandirTodo.addEventListener('click', () => setModulosVisibles(true));
+    if (contraerTodo) contraerTodo.addEventListener('click', () => setModulosVisibles(false));
+
     document.querySelectorAll('.marcar-modulo').forEach(cb => {
         cb.addEventListener('change', (e) => {
             const modulo = e.target.getAttribute('data-modulo');
-            const items = document.querySelectorAll(`.permiso-${modulo}`);
-            items.forEach(it => it.checked = e.target.checked);
+            const rows = document.querySelectorAll(`.permiso-row[data-modulo="${modulo}"]`);
+            rows.forEach(row => {
+                const visible = !row.classList.contains('d-none');
+                const input = row.querySelector(`.permiso-${modulo}`);
+                if (input && (visible || rows.length === document.querySelectorAll(`.permiso-${modulo}`).length)) {
+                    input.checked = e.target.checked;
+                }
+            });
             actualizarConteoModulo(modulo);
         });
     });
@@ -199,6 +225,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 actualizarConteoModulo(modulo);
             }
         })
+    });
+
+    // Buscador por módulo
+    document.querySelectorAll('.buscador-modulo').forEach(inp => {
+        inp.addEventListener('input', (e) => {
+            const q = e.target.value.trim().toLowerCase();
+            const modulo = e.target.getAttribute('data-modulo');
+            const rows = document.querySelectorAll(`.permiso-row[data-modulo="${modulo}"]`);
+            rows.forEach(row => {
+                const etiqueta = row.getAttribute('data-etiqueta');
+                const visible = q === '' || etiqueta.includes(q);
+                row.classList.toggle('d-none', !visible);
+            });
+        });
     });
 
     // Inicializar conteos
