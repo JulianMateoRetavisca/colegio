@@ -9,7 +9,7 @@
         <a class="navbar-brand" href="{{ route('dashboard') }}">
             <i class="fas fa-file-invoice-dollar me-2"></i>Colegio
         </a>
-        
+    
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
