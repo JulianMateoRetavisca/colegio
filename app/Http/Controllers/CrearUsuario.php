@@ -25,9 +25,14 @@ class CrearUsuario extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($request->password), 
         ]);
-
+        /*
+            asignar rol por defecto 
+        */
+        $user->roles_id = 6;
+        $user->save();
+        
         Auth::login($user);
 
         return redirect('/dashboard');

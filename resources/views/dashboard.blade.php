@@ -7,9 +7,8 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{ route('dashboard') }}">
-            <i class="fas fa-file-invoice-dollar me-2"></i>Colegio
-        </a>
-    
+            <i class="fas fa-book me-2 text-primary" style="opacity:0.9;"></i>Colegio
+        </a>    
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -53,78 +52,7 @@
     <div class="row">
         <!-- Sidebar -->
         <div class="col-md-3 col-lg-2 p-0">
-            <div class="sidebar">
-                <div class="p-3">
-                    <h6 class="text-white-50 text-uppercase">Menú Principal</h6>
-                </div>
-                <nav class="nav flex-column px-3">
-                    <a class="nav-link active" href="{{ route('dashboard') }}">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                    @if($rol)
-                        @if($rol->tienePermiso('gestionar_usuarios'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-users-cog me-2"></i>Gestión de Usuarios
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('gestionar_estudiantes'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-user-graduate me-2"></i>Estudiantes
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('gestionar_docentes'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-chalkboard-teacher me-2"></i>Docentes
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('gestionar_roles'))
-                            <a class="nav-link" href="{{ route('roles.index') }}">
-                                <i class="fas fa-user-shield me-2"></i>Roles y Permisos
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('matricular_estudiantes'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-user-check me-2"></i>Matricular Estudiantes
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('gestionar_materias'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-book-open me-2"></i>Materias
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('gestionar_cursos'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-layer-group me-2"></i>Cursos
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('gestionar_horarios'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-calendar-alt me-2"></i>Horarios
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('gestionar_disciplina'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-gavel me-2"></i>Disciplina
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('ver_reportes_generales'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-chart-bar me-2"></i>Reportes
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('gestionar_pagos'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-money-bill-wave me-2"></i>Pagos
-                            </a>
-                        @endif
-                        @if($rol->tienePermiso('configurar_sistema'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-cog me-2"></i>Configuración
-                            </a>
-                        @endif
-                    @endif
-                </nav>
-            </div>
+            @include('partials.sidebar')
         </div>
 
         <!-- Main Content -->
@@ -214,7 +142,7 @@
                                     @endif
                                     @if($rol && $rol->tienePermiso('gestionar_docentes'))
                                     <div class="col-md-4 mb-3">
-                                        <a href="#" class="btn btn-outline-primary btn-lg w-100">
+                                      <a href="{{ route('docentes.crear') }}" class="btn btn-outline-primary btn-lg w-100">
                                             <i class="fas fa-chalkboard-teacher me-2"></i>
                                             Nuevo Docente
                                         </a>

@@ -40,5 +40,25 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/remover-rol', [RolController::class, 'removerRol'])->name('remover');
         Route::get('/usuarios-sin-rol', [RolController::class, 'obtenerUsuariosSinRol'])->name('usuarios-sin-rol');
         Route::get('/roles-sistema', [RolController::class, 'obtenerRolesSistema'])->name('roles-sistema');
+
+        // Rutas para asignar notas a estudiantes
+        Route::post('/asignar-notas', [RolController::class, 'actualizarNota'])->name('roles.asignar-notas');
+
+        // Rutas para gestión de notas (mantenidas aquí para compatibilidad con AJAX de roles)
+        // (La UI para notas se declara fuera del prefijo 'roles' más abajo)
+
     });
+    
+    // Rutas UI para notas (fuera del prefijo 'roles' para nombres 'notas.*')
+    Route::prefix('notas')->name('notas.')->group(function () {
+        Route::get('/crear', [App\Http\Controllers\NotasController::class, 'crear'])->name('crear');
+        Route::post('/', [App\Http\Controllers\NotasController::class, 'ValidarNota'])->name('guardar');
+    });
+});
+
+//Rutas para docentes
+Route::prefix('docentes')->name('docentes.')->middleware('auth')->group(function () {
+    Route::get('/', [App\Http\Controllers\DocenteController::class, 'index'])->name('index');
+    Route::get('/crear', [App\Http\Controllers\DocenteController::class, 'crear'])->name('crear');
+    Route::post('/', [App\Http\Controllers\DocenteController::class, 'store'])->name('store');
 });

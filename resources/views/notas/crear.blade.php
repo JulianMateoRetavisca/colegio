@@ -1,0 +1,63 @@
+@extends('layouts.app')
+
+@section('content')
+@php
+    $usuario = Auth::user();
+    $rol = App\Models\RolesModel::find($usuario->roles_id);
+@endphp
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3 col-lg-2 p-0">
+            @include('partials.sidebar')
+        </div>
+        <div class="col-md-9 col-lg-10">
+            <div class="main-content p-4">
+                <h1>Asignar / Crear Nota</h1>
+
+                @if($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <form action="{{ route('notas.guardar') }}" method="POST">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="estudiante_id" class="form-label">Estudiante</label>
+                        <select name="estudiante_id" id="estudiante_id" class="form-control" required>
+                            <option value="">-- Seleccione --</option>
+                            @foreach($estudiantes as $est)
+                                <option value="{{ $est->id }}">{{ $est->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="materia_id" class="form-label">Materia</label>
+                        <select name="materia_id" id="materia_id" class="form-control" required>
+                            <option value="">-- Seleccione --</option>
+                            @foreach($materias as $id => $nombre)
+                                <option value="{{ $id }}">{{ $nombre }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nota" class="form-label">Nota (0-100)</label>
+                        <input type="number" name="nota" id="nota" class="form-control" min="0" max="100" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="periodo" class="form-label">Periodo</label>
+                        <input type="text" name="periodo" id="periodo" class="form-control" maxlength="4" placeholder="Ej: 2025" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Guardar nota</button>
+                    <a href="{{ route('dashboard') }}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection

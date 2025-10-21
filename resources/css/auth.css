@@ -1,0 +1,29 @@
+/* Simple styling for centered auth pages */
+body {
+    background-color: #f6f8fb;
+}
+.auth-page {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+}
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(32, 45, 61, 0.08);
+    padding: 28px;
+}
+.auth-brand h3 {
+    font-weight: 700;
+}
+.auth-card .form-control:focus {
+    box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.12);
+}
+.login-card .fa-book {
+    color: #0d6efd;
+}
+
+@media (max-width: 576px) {
+    .auth-card { padding: 18px; margin: 0 12px; }
+}

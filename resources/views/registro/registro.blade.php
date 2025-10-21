@@ -9,7 +9,7 @@
             <div class="col-md-6 col-lg-4">
                 <div class="login-card p-4">
                     <div class="text-center mb-4">
-                        <i class="fas fa-file-invoice-dollar fa-3x text-primary mb-3"></i>
+                       <i class="fas fa-book fa-3x text-primary" aria-hidden="true"></i>
                         <h3 class="fw-bold text-dark">Colegio</h3>
                         <p class="text-muted">Registrar usuario</p>
                     </div>
