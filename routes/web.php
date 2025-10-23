@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CrearUsuario;
 use App\Http\Controllers\RolController;
+use App\Http\Controllers\MatriculaAcudienteController;
 
 // Ruta raíz redirige al login
 Route::get('/', function () {
@@ -40,5 +41,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/remover-rol', [RolController::class, 'removerRol'])->name('remover');
         Route::get('/usuarios-sin-rol', [RolController::class, 'obtenerUsuariosSinRol'])->name('usuarios-sin-rol');
         Route::get('/roles-sistema', [RolController::class, 'obtenerRolesSistema'])->name('roles-sistema');
+    });
+
+    // Rutas de matrículas por acudientes
+    Route::prefix('matriculas')->name('matriculas.')->group(function () {
+        Route::get('/', [MatriculaAcudienteController::class, 'listar'])->name('index');
+        Route::get('/crear', [MatriculaAcudienteController::class, 'crear'])->name('crear');
+        Route::post('/guardar', [MatriculaAcudienteController::class, 'guardar'])->name('guardar');
+        Route::get('/{matricula}', [MatriculaAcudienteController::class, 'mostrar'])->name('mostrar');
+        Route::get('/descargar/{ruta}', [MatriculaAcudienteController::class, 'descargarDocumento'])->name('descargar');
     });
 });

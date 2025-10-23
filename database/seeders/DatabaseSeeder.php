@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesSeeder::class,                      // Primero crear los roles
             UsuariosAdministradoresSeeder::class,    // Luego crear usuarios admin y rector
+            CursosSeeder::class,                     // Cursos disponibles para matrícula
+            AcudienteSeeder::class,                  // Usuario acudiente y permisos específicos
         ]);
         
         $this->command->info('✓ Base de datos poblada exitosamente.');

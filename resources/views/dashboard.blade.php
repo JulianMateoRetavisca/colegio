@@ -16,6 +16,34 @@
         
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+                @php 
+                    $rolTop = App\Models\RolesModel::find(Auth::user()->roles_id);
+                    $pendMat = ($rolTop && $rolTop->nombre === 'Acudiente') 
+                        ? App\Models\MatriculaAcudiente::where('user_id', Auth::id())->where('estado','pendiente')->count() 
+                        : 0;
+                @endphp
+                @if($rolTop && $rolTop->nombre === 'Acudiente')
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="matriculasDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-folder me-1"></i>Matrículas
+                        @if($pendMat > 0)
+                            <span class="badge rounded-pill bg-warning text-dark ms-1">{{ $pendMat }}</span>
+                        @endif
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="matriculasDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{{ route('matriculas.index') }}">
+                                <i class="fas fa-list me-1"></i>Mis Matrículas
+                            @if($pendMat > 0)<span class="badge bg-warning text-dark ms-1">{{ $pendMat }}</span>@endif</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('matriculas.crear') }}">
+                                <i class="fas fa-file-upload me-1"></i>Nueva Matrícula
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                @endif
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user me-1"></i>{{ Auth::user()->name }}
@@ -61,6 +89,11 @@
                     <a class="nav-link active" href="{{ route('dashboard') }}">
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                     </a>
+                    @if($rol && $rol->nombre === 'Acudiente')
+                        <a class="nav-link" href="{{ route('matriculas.index') }}">
+                            <i class="fas fa-folder-open me-2"></i>Mis Matrículas
+                        </a>
+                    @endif
                     @if($rol)
                         @if($rol->tienePermiso('gestionar_usuarios'))
                             <a class="nav-link" href="#">
@@ -120,6 +153,11 @@
                         @if($rol->tienePermiso('configurar_sistema'))
                             <a class="nav-link" href="#">
                                 <i class="fas fa-cog me-2"></i>Configuración
+                            </a>
+                        @endif
+                        @if($rol && $rol->nombre === 'Acudiente')
+                            <a class="nav-link" href="{{ route('matriculas.crear') }}">
+                                <i class="fas fa-file-upload me-2"></i>Matrícula (Cargar Documentos)
                             </a>
                         @endif
                     @endif
@@ -204,6 +242,14 @@
                             </div>
                             <div class="card-body">
                                 <div class="row">
+                                    @if($rol && $rol->nombre === 'Acudiente')
+                                    <div class="col-md-4 mb-3">
+                                        <a href="{{ route('matriculas.crear') }}" class="btn btn-primary btn-lg w-100">
+                                            <i class="fas fa-file-upload me-2"></i>
+                                            Nueva Matrícula
+                                        </a>
+                                    </div>
+                                    @endif
                                     @if($rol && $rol->tienePermiso('gestionar_estudiantes'))
                                     <div class="col-md-4 mb-3">
                                         <a href="#" class="btn btn-primary btn-lg w-100">

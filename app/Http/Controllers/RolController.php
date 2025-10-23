@@ -387,6 +387,9 @@ class RolController extends Controller
                 'hacer_respaldos' => 'Realizar respaldos de datos',
                 'acceso_total' => 'Acceso total al sistema (Super Admin)',
             ],
+            'Matricula' => [
+                'cargar_documentos_matricula' => 'Cargar documentos de matricula',
+            ],
             'Personales' => [
                 'ver_perfil_propio' => 'Ver su propio perfil',
                 'editar_perfil_propio' => 'Editar su propio perfil',

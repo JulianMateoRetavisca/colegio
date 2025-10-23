@@ -15,6 +15,9 @@ return [
 
     'default' => env('FILESYSTEM_DISK', 'local'),
 
+    // Disk to use for user uploads (e.g., matrícula). Allows switching in .env
+    'upload_disk' => env('UPLOAD_DISK', 'ftp'),
+
     /*
     |--------------------------------------------------------------------------
     | Filesystem Disks
@@ -65,11 +68,11 @@ return [
             'host' => env('FTP_HOST'),
             'username' => env('FTP_USERNAME'),
             'password' => env('FTP_PASSWORD'),
-            'port' => env('FTP_PORT', 21),
+            'port' => (int) env('FTP_PORT', 21),
             'root' => env('FTP_ROOT', ''),
-            'passive' => true,
-            'ssl' => false,
-            'timeout' => 30,
+            'passive' => filter_var(env('FTP_PASSIVE', true), FILTER_VALIDATE_BOOLEAN),
+            'ssl' => filter_var(env('FTP_SSL', false), FILTER_VALIDATE_BOOLEAN),
+            'timeout' => (int) env('FTP_TIMEOUT', 30),
             'throw' => false,
             'report' => false,
         ],
