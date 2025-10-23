@@ -27,6 +27,14 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+            $user = Auth::user();
+            // Si es estudiante, llevar a la vista de notas de estudiante
+            if ($user && $user->roles_id) {
+                $rol = \App\Models\RolesModel::find($user->roles_id);
+                if ($rol && $rol->nombre === 'Estudiante') {
+                    return redirect()->route('estudiantes.index');
+                }
+            }
             return redirect()->intended('dashboard');
         }
 

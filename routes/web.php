@@ -53,6 +53,12 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('notas')->name('notas.')->group(function () {
         Route::get('/crear', [App\Http\Controllers\NotasController::class, 'crear'])->name('crear');
         Route::post('/', [App\Http\Controllers\NotasController::class, 'ValidarNota'])->name('guardar');
+        Route::get('/estudiante/{id}', [App\Http\Controllers\NotasController::class, 'porEstudiante'])->name('estudiante');
+        Route::get('/lista/estudiantes', [App\Http\Controllers\NotasController::class, 'listaEstudiantes'])->name('lista.estudiantes');
+        // Página de visualización de notas (tabla + selector) accesible a usuarios autenticados
+        Route::get('/mostrar', function() {
+            return view('notas.mostrar');
+        })->name('mostrar');
     });
 });
 
@@ -62,3 +68,17 @@ Route::prefix('docentes')->name('docentes.')->middleware('auth')->group(function
     Route::get('/crear', [App\Http\Controllers\DocenteController::class, 'crear'])->name('crear');
     Route::post('/', [App\Http\Controllers\DocenteController::class, 'store'])->name('store');
 });
+
+//rutas para estudiantes, solo visualizar notas
+Route::prefix('estudiantes')->name('estudiantes.')->middleware('auth')->group(function () {
+    Route::get('/', function() {
+        $user = auth()->user();
+        if (!$user) return redirect()->route('login');
+        // Obtener rol del usuario
+        $rol = App\Models\RolesModel::find($user->roles_id);
+        if (!$rol || $rol->nombre !== 'Estudiante') {
+            abort(403, 'Solo estudiantes pueden acceder aquí');
+        }
+        return redirect()->route('notas.mostrar');
+    })->name('index');
+});    

@@ -90,6 +90,47 @@ class NotasController extends Controller
         return response()->json(['message' => 'No autorizado'], 403);
     }
 
+    /**
+     * Retornar todas las notas de un estudiante (JSON) — usado por la UI/admin
+     */
+    public function porEstudiante($id)
+    {
+        $usuario = Auth::user();
+        if (!$usuario) return response()->json(['message' => 'No autorizado'], 403);
+
+        // Solo usuarios con permiso pueden consultar notas de otros estudiantes
+        if (!$usuario->tienePermiso('ver_notas') && !$usuario->tienePermiso('gestionar_notas')) {
+            // Si no tiene permiso pero el id es el suyo, permitir
+            if ((int)$id !== (int)$usuario->id) {
+                return response()->json(['message' => 'No autorizado'], 403);
+            }
+        }
+
+        $notas = NotaModel::with('estudiante')->where('estudiante_id', $id)->get();
+        return response()->json($notas);
+    }
+
+    /**
+     * Retornar lista simple de estudiantes (id, name) para poblar selects en la UI
+     */
+    public function listaEstudiantes()
+    {
+        $usuario = Auth::user();
+        if (!$usuario) return response()->json([], 200);
+
+        // Solo usuarios con permiso para ver notas de otros pueden obtener la lista completa
+        if (!$usuario->tienePermiso('ver_notas') && !$usuario->tienePermiso('gestionar_notas')) {
+            // Si no tiene permiso, devolver solo el mismo usuario si es estudiante
+            return response()->json([['id' => $usuario->id, 'name' => $usuario->name]]);
+        }
+
+        $estudiantes = User::where('roles_id', RolesModel::where('nombre','Estudiante')->first()->id ?? 6)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($estudiantes);
+    }
+
     public function ActualizarNota(Request $request, $id)
     {
         $nota = NotaModel::find($id);
