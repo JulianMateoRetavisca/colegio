@@ -113,7 +113,7 @@ if ($usuario && $usuario->roles_id) {
                 </a>
             @endif
             @if($rol->tienePermiso('gestionar_estudiantes'))
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="{{route('estudiantes.mostrar')}}">
                     <i class="fas fa-user-graduate me-2"></i>
                     <span class="label">Estudiantes</span>
                 </a>

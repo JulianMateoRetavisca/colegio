@@ -4,7 +4,11 @@
 @include('partials.sidebar')
 
 <div class="container-fluid">
-  <div class="main-content p-4">
+  <div class="row">
+    <div class="col-md-3 col-lg-2 p-10" style="background-color: #f7f7f7ff;">
+    </div>
+    <div class="col-md-9 col-lg-10" style="background-color: #f7f7f7ff;">
+      <div class="main-content p-4">
     <h1>Crear Docente</h1>
 
     @if(session('success'))
@@ -38,6 +42,8 @@
       <button class="btn btn-success" type="submit">Crear docente</button>
       <a class="btn btn-secondary" href="{{ route('docentes.index') }}">Cancelar</a>
     </form>
+    </div>
+     </div>  
   </div>
 </div>
 @endsection

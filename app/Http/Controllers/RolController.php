@@ -15,18 +15,26 @@ class RolController extends Controller
     /**
      * Mostrar lista de todos los roles
      */
-    public function index()
-    {
-        // Solo administradores y rectores pueden ver todos los roles
-        if (!$this->usuarioPuedeGestionarRoles()) {
-            return redirect('/dashboard')->with('error', 'No tienes permisos para acceder a esta sección.');
+        public function index()
+        {
+            // Solo administradores y rectores pueden ver todos los roles
+            if (!$this->usuarioPuedeGestionarRoles()) {
+                return redirect('/dashboard')->with('error', 'No tienes permisos para acceder a esta sección.');
+            }
+
+            // Obtener todos los roles con el conteo de usuarios
+            $roles = RolesModel::withCount('usuarios')->get();
+
+            // Obtener usuarios sin rol asignado
+            $obtenerUsuariosSinRol = User::whereNull('roles_id')
+                ->select('id', 'name', 'email')
+                ->orderBy('name')
+                ->get();
+
+            // Enviar ambas variables a la vista
+            return view('roles.index', compact('roles', 'obtenerUsuariosSinRol'));
         }
 
-        // Obtener todos los roles con el conteo de usuarios
-        $roles = RolesModel::withCount('usuarios')->get();
-        
-        return view('roles.index', compact('roles'));
-    }
 
     /**
      * Mostrar formulario para crear nuevo rol
@@ -74,6 +82,41 @@ class RolController extends Controller
         return redirect()->route('roles.index')
             ->with('success', 'Rol creado exitosamente.');
     }
+            /**
+ * Mostrar página independiente con usuarios sin rol asignado
+ */
+public function usuariosSinRol()
+{
+    if (!$this->usuarioPuedeGestionarRoles()) {
+        return redirect('/dashboard')->with('error', 'No tienes permisos para ver esta información.');
+    }
+
+    // Obtener usuarios sin rol
+    $usuarios = User::whereNull('roles_id')
+        ->select('id', 'name', 'email')
+        ->orderBy('name')
+        ->get();
+
+    // Obtener todos los roles para el dropdown
+    $roles = RolesModel::whereBetween('id', [3, 8])->get();
+
+    return view('usuarios.sinrol', compact('usuarios', 'roles'));
+}
+//**
+// controlador para mostrar el formulario
+//  */
+public function mostrarFormulario()
+{
+    if (!$this->usuarioPuedeGestionarRoles()) {
+        return redirect('/dashboard')->with('error', 'No tienes permisos para gestionar roles.');
+    }
+
+
+    $usuarios = User::with('rol')->orderBy('name')->get();
+    $roles = RolesModel::all();
+
+    return view('asignar-roles', compact('usuarios', 'roles'));
+}
 
     /**
      * Mostrar detalles de un rol específico
@@ -95,6 +138,7 @@ class RolController extends Controller
             'gruposPermisos' => $gruposPermisos,
         ]);
     }
+
 
     /**
      * Mostrar formulario de edición de un rol
@@ -199,28 +243,30 @@ class RolController extends Controller
     /**
      * Asignar un rol a un usuario (AJAX)
      */
-    public function asignarRol(Request $request)
-    {
-        if (!$this->usuarioPuedeGestionarRoles()) {
-            return response()->json(['exito' => false, 'error' => 'No autorizado'], 403);
-        }
-
-        $datos = $request->validate([
-            'usuario_id' => 'required|exists:users,id',
-            'rol_id' => 'required|exists:roles,id',
-        ]);
-
-        $usuario = User::find($datos['usuario_id']);
-        $usuario->roles_id = $datos['rol_id'];
-        $usuario->save();
-
-        $rol = RolesModel::find($datos['rol_id']);
-
-        return response()->json([
-            'exito' => true,
-            'mensaje' => "Rol '{$rol->nombre}' asignado exitosamente a {$usuario->name}."
-        ]);
+public function asignarRol(Request $request)
+{
+    if (!$this->usuarioPuedeGestionarRoles()) {
+        return redirect('/dashboard')->with('error', 'No autorizado');
     }
+
+    $datos = $request->validate([
+        'usuario_id' => 'required|exists:users,id',
+        'rol_id' => 'nullable|exists:roles,id',
+    ]);
+
+    $usuario = User::find($datos['usuario_id']);
+    $usuario->roles_id = $datos['rol_id'];
+    $usuario->save();
+
+    if ($datos['rol_id']) {
+        $rol = RolesModel::find($datos['rol_id']);
+        $mensaje = "Rol '{$rol->nombre}' asignado exitosamente a {$usuario->name}.";
+    } else {
+        $mensaje = "Rol removido exitosamente de {$usuario->name}.";
+    }
+
+    return redirect()->route('asignar-roles.form')->with('success', $mensaje);
+}
 
     /**
      * Remover rol de un usuario (AJAX)

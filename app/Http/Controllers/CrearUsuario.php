@@ -30,8 +30,6 @@ class CrearUsuario extends Controller
         /*
             asignar rol por defecto 
         */
-        $user->roles_id = 6;
-        $user->save();
         
         Auth::login($user);
 
