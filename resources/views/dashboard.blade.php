@@ -74,9 +74,7 @@
                                 <div class="text-primary mb-2">
                                     <i class="fas fa-file-invoice fa-2x"></i>
                                 </div>
-                                <h5 class="card-title">Total Cuentas</h5>
-                                <h3 class="text-primary">0</h3>
-                                <small class="text-muted">Cuentas registradas</small>
+                                
                             </div>
                         </div>
                     </div>
@@ -87,9 +85,7 @@
                                 <div class="text-success mb-2">
                                     <i class="fas fa-check-circle fa-2x"></i>
                                 </div>
-                                <h5 class="card-title">Pagadas</h5>
-                                <h3 class="text-success">0</h3>
-                                <small class="text-muted">Cuentas pagadas</small>
+ 
                             </div>
                         </div>
                     </div>
@@ -100,9 +96,7 @@
                                 <div class="text-warning mb-2">
                                     <i class="fas fa-clock fa-2x"></i>
                                 </div>
-                                <h5 class="card-title">Pendientes</h5>
-                                <h3 class="text-warning">0</h3>
-                                <small class="text-muted">Por cobrar</small>
+                               
                             </div>
                         </div>
                     </div>
@@ -113,9 +107,7 @@
                                 <div class="text-info mb-2">
                                     <i class="fas fa-dollar-sign fa-2x"></i>
                                 </div>
-                                <h5 class="card-title">Total Facturado</h5>
-                                <h3 class="text-info">$0</h3>
-                                <small class="text-muted">Este mes</small>
+                                
                             </div>
                         </div>
                     </div>
