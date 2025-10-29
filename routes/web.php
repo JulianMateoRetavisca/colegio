@@ -34,7 +34,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [RolController::class, 'guardar'])->name('guardar');
         Route::get('/{rol}', [RolController::class, 'mostrar'])->name('mostrar');
         Route::get('/{rol}/editar', [RolController::class, 'editar'])->name('editar');
-        Route::get('/asignar-roles', [RolController::class, 'mostrarFormulario'])->name('asignar-roles.form');
+        Route::get('/asignar-roles', [RolController::class, 'mostrarFormulario'])->name('asignar-roles');
         Route::put('/{rol}', [RolController::class, 'actualizar'])->name('actualizar');
         Route::delete('/{rol}', [RolController::class, 'eliminar'])->name('eliminar');
         

@@ -265,7 +265,7 @@ public function asignarRol(Request $request)
         $mensaje = "Rol removido exitosamente de {$usuario->name}.";
     }
 
-    return redirect()->route('asignar-roles.form')->with('success', $mensaje);
+    return redirect()->route('sin')->with('success', $mensaje);
 }
 
     /**
