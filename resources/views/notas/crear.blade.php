@@ -27,9 +27,17 @@
                 <form action="{{ route('notas.guardar') }}" method="POST">
                     @csrf
                     <div class="mb-3">
+                        <label for="group_id" class="form-label">Grupo</label>
+                        <select name="group_id" id="group_id" class="form-control">
+                            <option value="">-- Seleccione grupo --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="estudiante_id" class="form-label">Estudiante</label>
                         <select name="estudiante_id" id="estudiante_id" class="form-control" required>
-                            <option value="">-- Seleccione --</option>
+                            <option value="">-- Seleccione estudiante --</option>
+                            {{-- Fallback: render estudiantes server-side in case no grupos exist or JS fails --}}
                             @foreach($estudiantes as $est)
                                 <option value="{{ $est->id }}">{{ $est->name }}</option>
                             @endforeach
@@ -56,6 +64,68 @@
                     <button type="submit" class="btn btn-success">Guardar nota</button>
                     <a href="{{ route('dashboard') }}" class="btn btn-secondary">Cancelar</a>
                 </form>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function(){
+                        const groupSelect = document.getElementById('group_id');
+                        const studentSelect = document.getElementById('estudiante_id');
+
+                        // Cargar grupos via endpoint
+                        fetch('{{ route('notas.grupos') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                            .then(r => {
+                                if (!r.ok) throw new Error('HTTP ' + r.status);
+                                return r.json();
+                            })
+                            .then(data => {
+                                if (!data || data.length === 0) {
+                                    // no hay grupos: dejar el listado de estudiantes como viene del servidor
+                                    return;
+                                }
+                                // limpiar opciones actuales
+                                groupSelect.innerHTML = '<option value="">-- Seleccione grupo --</option>';
+                                data.forEach(g => {
+                                    const opt = document.createElement('option');
+                                    opt.value = g.id; opt.textContent = g.nombre || ('Grupo ' + g.id);
+                                    groupSelect.appendChild(opt);
+                                });
+
+                                // cuando cambie el grupo, solicitar estudiantes
+                                groupSelect.addEventListener('change', () => {
+                                    const gid = groupSelect.value;
+                                    // limpiar estudiantes
+                                    studentSelect.innerHTML = '<option value="">-- Seleccione estudiante --</option>';
+                                    if (!gid) return;
+                                    fetch('{{ url('/notas/grupo') }}' + '/' + gid + '/estudiantes', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                                        .then(r => {
+                                            if (!r.ok) throw new Error('HTTP ' + r.status);
+                                            return r.json();
+                                        })
+                                        .then(list => {
+                                            if (!list || list.length === 0) {
+                                                const opt = document.createElement('option');
+                                                opt.value = ''; opt.textContent = 'No hay estudiantes en este grupo';
+                                                studentSelect.appendChild(opt);
+                                                return;
+                                            }
+                                            list.forEach(s => {
+                                                const opt = document.createElement('option');
+                                                opt.value = s.id; opt.textContent = s.name;
+                                                studentSelect.appendChild(opt);
+                                            });
+                                        })
+                                        .catch(err => {
+                                            console.error(err);
+                                        });
+                                });
+
+                                // auto seleccionar primer grupo si existe
+                                if (groupSelect.options.length > 1) {
+                                    groupSelect.selectedIndex = 1;
+                                    groupSelect.dispatchEvent(new Event('change'));
+                                }
+                            })
+                            .catch(err => console.error(err));
+                    });
+                </script>
             </div>
         </div>
     </div>

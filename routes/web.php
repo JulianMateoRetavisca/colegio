@@ -50,16 +50,43 @@ Route::middleware(['auth'])->group(function () {
     });
     
     // Rutas UI para notas (fuera del prefijo 'roles' para nombres 'notas.*')
+    // Dentro del middleware 'auth' solo mantenemos las rutas de creación/guardado (protegidas)
     Route::prefix('notas')->name('notas.')->group(function () {
         Route::get('/crear', [App\Http\Controllers\NotasController::class, 'crear'])->name('crear');
         Route::post('/', [App\Http\Controllers\NotasController::class, 'ValidarNota'])->name('guardar');
-        Route::get('/estudiante/{id}', [App\Http\Controllers\NotasController::class, 'porEstudiante'])->name('estudiante');
-        Route::get('/lista/estudiantes', [App\Http\Controllers\NotasController::class, 'listaEstudiantes'])->name('lista.estudiantes');
-        // Página de visualización de notas (tabla + selector) accesible a usuarios autenticados
-        Route::get('/mostrar', function() {
-            return view('notas.mostrar');
-        })->name('mostrar');
     });
+
+    // Rutas para gestionar grupos (CRUD + asignar estudiantes)
+    Route::prefix('grupos')->name('grupos.')->group(function () {
+        Route::get('/', [App\Http\Controllers\GrupoController::class, 'index'])->name('index');
+        Route::get('/crear', [App\Http\Controllers\GrupoController::class, 'crear'])->name('crear');
+        Route::post('/', [App\Http\Controllers\GrupoController::class, 'guardar'])->name('guardar');
+        Route::get('/{grupo}/editar', [App\Http\Controllers\GrupoController::class, 'editar'])->name('editar');
+        Route::put('/{grupo}', [App\Http\Controllers\GrupoController::class, 'actualizar'])->name('actualizar');
+        Route::delete('/{grupo}', [App\Http\Controllers\GrupoController::class, 'eliminar'])->name('eliminar');
+
+        // Asignar estudiantes
+        Route::get('/{grupo}/asignar', [App\Http\Controllers\GrupoController::class, 'asignar'])->name('asignar');
+        Route::post('/{grupo}/asignar', [App\Http\Controllers\GrupoController::class, 'asignarGuardar'])->name('asignar.guardar');
+    });
+});
+
+// Exponer la vista pública de notas fuera del middleware 'auth' para que cualquiera pueda verla
+Route::get('/notas/mostrar', [App\Http\Controllers\NotasController::class, 'vistaPublica'])->name('notas.mostrar');
+
+// Rutas públicas (lectura) para notas — permiten que la vista pública consulte datos JSON
+Route::prefix('notas')->name('notas.')->group(function () {
+    // Endpoint para obtener todas las notas (JSON) — usado por la UI cuando se quiere ver "Todos"
+    Route::get('/', [App\Http\Controllers\NotasController::class, 'index'])->name('index');
+    Route::get('/estudiante/{id}', [App\Http\Controllers\NotasController::class, 'porEstudiante'])->name('estudiante');
+    Route::get('/lista/estudiantes', [App\Http\Controllers\NotasController::class, 'listaEstudiantes'])->name('lista.estudiantes');
+    // Ruta para que docentes/visitors vean trabajos/notas de un grupo específico
+    Route::get('/grupo/{grupoId}', [App\Http\Controllers\NotasController::class, 'porGrupo'])->name('grupo');
+    // Endpoints auxiliares para la UI: listar grupos y obtener estudiantes de un grupo
+    Route::get('/grupos', [App\Http\Controllers\NotasController::class, 'listaGrupos'])->name('grupos');
+    Route::get('/grupo/{grupoId}/estudiantes', [App\Http\Controllers\NotasController::class, 'estudiantesPorGrupo'])->name('grupo.estudiantes');
+    // Endpoint para filtrar notas por grupo y/o materia (ej: /notas/filtros?grupo=1&materia=2)
+    Route::get('/filtros', [App\Http\Controllers\NotasController::class, 'filtrar'])->name('filtros');
 });
 
 //Rutas para docentes
