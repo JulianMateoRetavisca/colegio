@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CrearUsuario;
 use App\Http\Controllers\RolController;
+use App\Http\Controllers\UsuarioSinrollController;
+use App\Http\Controllers\EstudiantesController;
 
 // Ruta raíz redirige al login
 Route::get('/', function () {
@@ -32,13 +34,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [RolController::class, 'guardar'])->name('guardar');
         Route::get('/{rol}', [RolController::class, 'mostrar'])->name('mostrar');
         Route::get('/{rol}/editar', [RolController::class, 'editar'])->name('editar');
+        Route::get('/asignar-roles', [RolController::class, 'mostrarFormulario'])->name('asignar-roles.form');
         Route::put('/{rol}', [RolController::class, 'actualizar'])->name('actualizar');
         Route::delete('/{rol}', [RolController::class, 'eliminar'])->name('eliminar');
         
         // Rutas AJAX para gestión de roles
         Route::post('/asignar-rol', [RolController::class, 'asignarRol'])->name('asignar');
         Route::post('/remover-rol', [RolController::class, 'removerRol'])->name('remover');
-        Route::get('/usuarios-sin-rol', [RolController::class, 'obtenerUsuariosSinRol'])->name('usuarios-sin-rol');
         Route::get('/roles-sistema', [RolController::class, 'obtenerRolesSistema'])->name('roles-sistema');
 
         // Rutas para asignar notas a estudiantes
@@ -88,6 +90,14 @@ Route::prefix('notas')->name('notas.')->group(function () {
     // Endpoint para filtrar notas por grupo y/o materia (ej: /notas/filtros?grupo=1&materia=2)
     Route::get('/filtros', [App\Http\Controllers\NotasController::class, 'filtrar'])->name('filtros');
 });
+//rutas para ver estudiantes
+//Route:Middleware(['auth'])->group(function () {
+        Route::prefix('estudiantes')->name('estudiantes.')->middleware('auth')->group(function () {
+            Route::get('/', [App\Http\Controllers\EstudiantesController::class, 'index'])->name('index');
+            Route::get('/mostrar', [App\Http\Controllers\EstudiantesController::class,'MostrarEstudiante'])->name('mostrar');
+            Route::post('/', [App\Http\Controllers\EstudiantesController::class, 'store'])->name('store');
+        });
+//});
 
 //Rutas para docentes
 Route::prefix('docentes')->name('docentes.')->middleware('auth')->group(function () {
@@ -95,6 +105,10 @@ Route::prefix('docentes')->name('docentes.')->middleware('auth')->group(function
     Route::get('/crear', [App\Http\Controllers\DocenteController::class, 'crear'])->name('crear');
     Route::post('/', [App\Http\Controllers\DocenteController::class, 'store'])->name('store');
 });
+
+//ruta para usuarios sin rol
+Route::get('/sin', [RolController::class, 'usuariosSinRol'])->name('sin');
+
 
 //rutas para estudiantes, solo visualizar notas
 Route::prefix('estudiantes')->name('estudiantes.')->middleware('auth')->group(function () {
