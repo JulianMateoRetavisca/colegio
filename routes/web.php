@@ -56,6 +56,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('notas')->name('notas.')->group(function () {
         Route::get('/crear', [App\Http\Controllers\NotasController::class, 'crear'])->name('crear');
         Route::post('/', [App\Http\Controllers\NotasController::class, 'ValidarNota'])->name('guardar');
+        // Ruta para actualizar una nota (protegida)
+        Route::put('/{id}', [App\Http\Controllers\NotasController::class, 'ActualizarNota'])->name('actualizar');
     });
 
     // Rutas para gestionar grupos (CRUD + asignar estudiantes)
