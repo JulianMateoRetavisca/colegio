@@ -43,6 +43,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/asignar-rol', [RolController::class, 'asignarRol'])->name('asignar');
         Route::post('/remover-rol', [RolController::class, 'removerRol'])->name('remover');
         Route::get('/roles-sistema', [RolController::class, 'obtenerRolesSistema'])->name('roles-sistema');
+    // Endpoint para detectar cambios recientes en roles
+    Route::get('/updates', [RolController::class, 'updates'])->name('updates');
 
         // Rutas para asignar notas a estudiantes
         Route::post('/asignar-notas', [RolController::class, 'actualizarNota'])->name('roles.asignar-notas');
@@ -78,6 +80,8 @@ Route::middleware(['auth'])->group(function () {
     // Rutas para gestionar usuarios (listar, editar, actualizar, eliminar)
     Route::prefix('usuarios')->name('usuarios.')->group(function () {
         Route::get('/', [UsuarioController::class, 'index'])->name('index');
+        // Endpoint para detectar cambios recientes en usuarios (polling)
+        Route::get('/updates', [UsuarioController::class, 'updates'])->name('updates');
         Route::get('/{usuario}/editar', [UsuarioController::class, 'editar'])->name('editar');
         Route::put('/{usuario}', [UsuarioController::class, 'actualizar'])->name('actualizar');
         Route::delete('/{usuario}', [UsuarioController::class, 'eliminar'])->name('eliminar');

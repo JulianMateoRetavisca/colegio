@@ -329,6 +329,43 @@ public function asignarRol(Request $request)
     }
 
     /**
+     * Endpoint JSON para detectar roles modificados desde una marca de tiempo.
+     * Parámetro GET: since (ISO datetime)
+     */
+    public function updates(\Illuminate\Http\Request $request)
+    {
+        if (!$this->usuarioPuedeGestionarRoles()) {
+            return response()->json(['exito' => false, 'error' => 'No autorizado'], 403);
+        }
+
+        $since = $request->query('since');
+        $now = now()->toIsoString();
+
+        if (!$since) {
+            return response()->json(['exito' => true, 'datos' => [], 'now' => $now]);
+        }
+
+        try {
+            $sinceDt = \Carbon\Carbon::parse($since);
+        } catch (\Exception $e) {
+            return response()->json(['exito' => false, 'error' => 'Formato de fecha inválido'], 400);
+        }
+
+        $roles = RolesModel::where('updated_at', '>', $sinceDt)
+            ->get()
+            ->map(function ($r) {
+                return [
+                    'id' => $r->id,
+                    'nombre' => $r->nombre,
+                    'descripcion' => $r->descripcion,
+                    'updated_at' => $r->updated_at->toIsoString(),
+                ];
+            });
+
+        return response()->json(['exito' => true, 'datos' => $roles, 'now' => $now]);
+    }
+
+    /**
      * Verificar si el usuario puede gestionar roles
      */
     private function usuarioPuedeGestionarRoles()

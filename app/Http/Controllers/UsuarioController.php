@@ -81,4 +81,45 @@ class UsuarioController extends Controller
         $usuario->delete();
         return redirect()->route('usuarios.index')->with('success', 'Usuario eliminado correctamente.');
     }
+
+    /**
+     * Endpoint JSON para devolver usuarios modificados desde una marca de tiempo.
+     * Parámetro GET: since (ISO datetime)
+     */
+    public function updates(\Illuminate\Http\Request $request)
+    {
+        if (!$this->puedeGestionar()) {
+            return response()->json(['exito' => false, 'error' => 'No autorizado'], 403);
+        }
+
+        $since = $request->query('since');
+        $now = now()->toIsoString();
+
+        if (!$since) {
+            // Si no se envía 'since', devolvemos vacío y la marca actual para inicializar al cliente
+            return response()->json(['exito' => true, 'datos' => [], 'now' => $now]);
+        }
+
+        try {
+            $sinceDt = \Carbon\Carbon::parse($since);
+        } catch (\Exception $e) {
+            return response()->json(['exito' => false, 'error' => 'Formato de fecha inválido'], 400);
+        }
+
+        $usuarios = User::with('rol')
+            ->where('updated_at', '>', $sinceDt)
+            ->get()
+            ->map(function ($u) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name,
+                    'email' => $u->email,
+                    'roles_id' => $u->roles_id,
+                    'rol' => $u->rol ? $u->rol->nombre : null,
+                    'updated_at' => $u->updated_at->toIsoString(),
+                ];
+            });
+
+        return response()->json(['exito' => true, 'datos' => $usuarios, 'now' => $now]);
+    }
 }
