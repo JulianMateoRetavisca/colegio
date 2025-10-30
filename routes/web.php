@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CrearUsuario;
 use App\Http\Controllers\RolController;
+use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\UsuarioSinrollController;
 use App\Http\Controllers\EstudiantesController;
 
@@ -72,6 +73,14 @@ Route::middleware(['auth'])->group(function () {
         // Asignar estudiantes
         Route::get('/{grupo}/asignar', [App\Http\Controllers\GrupoController::class, 'asignar'])->name('asignar');
         Route::post('/{grupo}/asignar', [App\Http\Controllers\GrupoController::class, 'asignarGuardar'])->name('asignar.guardar');
+    });
+
+    // Rutas para gestionar usuarios (listar, editar, actualizar, eliminar)
+    Route::prefix('usuarios')->name('usuarios.')->group(function () {
+        Route::get('/', [UsuarioController::class, 'index'])->name('index');
+        Route::get('/{usuario}/editar', [UsuarioController::class, 'editar'])->name('editar');
+        Route::put('/{usuario}', [UsuarioController::class, 'actualizar'])->name('actualizar');
+        Route::delete('/{usuario}', [UsuarioController::class, 'eliminar'])->name('eliminar');
     });
 });
 
