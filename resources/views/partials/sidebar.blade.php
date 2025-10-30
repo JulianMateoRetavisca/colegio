@@ -107,7 +107,7 @@ if ($usuario && $usuario->roles_id) {
         </a>
         @if($rol)
             @if($rol->tienePermiso('gestionar_usuarios'))
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="{{ route('usuarios.index') }}">
                     <i class="fas fa-users-cog me-2"></i>
                     <span class="label">Gestión de Usuarios</span>
                 </a>
