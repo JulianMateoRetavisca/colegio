@@ -18,6 +18,12 @@
             <div class="main-content p-4">
                 <h1 class="mb-4">Lista de Roles</h1>
 
+                <!-- Banner de actualizaciones en vivo para roles -->
+                <div id="rolesLiveBanner" class="alert alert-info d-none text-center" role="alert" style="position:fixed; left:50%; transform:translateX(-50%); top:12px; z-index:1050; max-width:900px;">
+                    <span id="rolesLiveMsg">Se detectaron cambios en roles por otros usuarios.</span>
+                    <button id="rolesLiveReload" class="btn btn-sm btn-primary ms-2">Actualizar</button>
+                </div>
+
                 @if(session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
                 @endif
@@ -68,4 +74,41 @@
         </div>
     </div>
 </div> 
+@endsection
+
+@section('scripts')
+<script>
+(() => {
+    const updatesUrl = "{{ route('roles.updates') }}";
+    let last = @json($roles->max('updated_at') ? $roles->max('updated_at')->toIsoString() : now()->toIsoString());
+    const banner = document.getElementById('rolesLiveBanner');
+    const reloadBtn = document.getElementById('rolesLiveReload');
+
+    function showBanner(count) {
+        if (!banner) return;
+        banner.classList.remove('d-none');
+        document.getElementById('rolesLiveMsg').textContent = `Se detectaron ${count} cambios en roles.`;
+    }
+    reloadBtn && reloadBtn.addEventListener('click', () => location.reload());
+
+    async function poll() {
+        try {
+            const res = await fetch(updatesUrl + '?since=' + encodeURIComponent(last), { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data && data.exito) {
+                if (Array.isArray(data.datos) && data.datos.length > 0) {
+                    showBanner(data.datos.length);
+                }
+                if (data.now) last = data.now;
+            }
+        } catch (e) {
+            console.error('Polling roles error', e);
+        }
+    }
+
+    setInterval(poll, 10000);
+    setTimeout(poll, 1500);
+})();
+</script>
 @endsection
