@@ -120,6 +120,6 @@ Route::prefix('estudiantes')->name('estudiantes.')->middleware('auth')->group(fu
         if (!$rol || $rol->nombre !== 'Estudiante') {
             abort(403, 'Solo estudiantes pueden acceder aquí');
         }
-        return redirect()->route('dashboard');
+        return redirect()->route('notas.mostrar');
     })->name('index');
 });    
