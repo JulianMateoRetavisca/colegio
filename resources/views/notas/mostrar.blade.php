@@ -9,6 +9,44 @@
     <div id="controls" class="my-3">
         <!-- El select se renderiza por JS cuando el usuario tiene permiso -->
         <div id="studentSelectWrapper"></div>
+        @if(isset($isAdmin) && $isAdmin)
+            <form method="GET" action="{{ route('notas.mostrar') }}" class="d-flex gap-2 align-items-end mb-3">
+                <div>
+                    <label class="form-label">Grupo</label>
+                    <select name="grupo" class="form-select">
+                        <option value="">Todos</option>
+                        @foreach($grupos as $g)
+                            <option value="{{ $g->id }}" {{ (isset($selectedGrupo) && $selectedGrupo == $g->id) ? 'selected' : '' }}>{{ $g->nombre ?? 'Grupo '.$g->id }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Materia</label>
+                    <select name="materia" class="form-select">
+                        <option value="">Todas</option>
+                        @foreach($materias as $mid => $mname)
+                            <option value="{{ $mid }}" {{ (isset($selectedMateria) && $selectedMateria == $mid) ? 'selected' : '' }}>{{ $mname }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                </div>
+            </form>
+            <script>window.serverControls = true;</script>
+        @endif
+        @if(isset($isStudent) && $isStudent)
+            <div class="mb-2">
+                <label class="form-label">Filtrar por materia</label>
+                <select id="studentMateriaFilter" class="form-select w-25">
+                    <option value="">Todas</option>
+                    @foreach($materias as $mid => $mname)
+                        <option value="{{ $mid }}">{{ $mname }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <script>window.studentControls = true;</script>
+        @endif
         <div id="debugArea" style="margin-top:8px;color:#555;font-size:0.9rem;
             background:#f8f9fa;padding:8px;border-radius:4px;display:none;">Debug:</div>
     </div>
@@ -21,16 +59,22 @@
                     <th>Periodo</th>
                     <th>Nota</th>
                     <th>Estudiante</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @if(isset($notas) && count($notas) > 0)
                     @foreach($notas as $n)
-                        <tr>
-                            <td>{{ $n->materia_id ?? 'N/A' }}</td>
-                            <td>{{ $n->periodo }}</td>
-                            <td>{{ $n->nota }}</td>
+                        <tr data-id="{{ $n->id }}">
+                            <td>{{ isset($materias[$n->materia_id]) ? $materias[$n->materia_id] : ($n->materia_id ?? 'N/A') }}</td>
+                            <td class="periodo">{{ $n->periodo }}</td>
+                            <td class="nota">{{ $n->nota }}</td>
                             <td>{{ $n->estudiante->name ?? '' }}</td>
+                            <td>
+                                @if(Auth::check() && Auth::user()->tienePermiso('modificar_notas'))
+                                    <button class="btn btn-sm btn-primary editNotaBtn" data-id="{{ $n->id }}" data-materia="{{ $n->materia_id }}" data-periodo="{{ $n->periodo }}" data-nota="{{ $n->nota }}">Editar</button>
+                                @endif
+                            </td>
                         </tr>
                     @endforeach
                 @else
@@ -42,6 +86,11 @@
 </div>
 
 <script>
+    // CSRF token for AJAX
+    const csrfToken = '{{ csrf_token() }}';
+    // permiso para modificar notas en JS
+    window.canModify = {{ (Auth::check() && Auth::user()->tienePermiso('modificar_notas')) ? 'true' : 'false' }};
+
 document.addEventListener('DOMContentLoaded', function(){
     // marcar que el script se inició
     try { showDebug('Script cargado'); } catch(e) { console.warn('showDebug aún no definido'); }
@@ -64,6 +113,55 @@ document.addEventListener('DOMContentLoaded', function(){
         console.debug('[notas.mostrar] ' + msg);
     }
 
+    // Delegated handler for Edit buttons
+    document.addEventListener('click', function(ev){
+        if (!window.canModify) return;
+        const btn = ev.target.closest && ev.target.closest('.editNotaBtn');
+        if (!btn) return;
+        const id = btn.getAttribute('data-id');
+        const currentNota = btn.getAttribute('data-nota');
+        const currentPeriodo = btn.getAttribute('data-periodo');
+        const newNota = prompt('Ingrese nueva nota (0-100):', currentNota);
+        if (newNota === null) return; // cancel
+        const newPeriodo = prompt('Ingrese periodo (ej. 2025):', currentPeriodo);
+        if (newPeriodo === null) return;
+        // enviar PUT
+        const url = '{{ url('/notas') }}/' + id;
+        showDebug('Actualizando nota ' + id + ' -> nota=' + newNota + ', periodo=' + newPeriodo);
+        fetch(url, {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ nota: newNota, periodo: newPeriodo })
+        })
+        .then(r => {
+            if (!r.ok) return r.text().then(t => { throw new Error('HTTP ' + r.status + ' - ' + t); });
+            return r.json();
+        })
+        .then(data => {
+            showDebug('Nota actualizada: ' + JSON.stringify(data));
+            // actualizar fila en la tabla si existe
+            const row = document.querySelector('tr[data-id="' + id + '"]');
+            if (row) {
+                const notaCell = row.querySelector('.nota');
+                const periodoCell = row.querySelector('.periodo');
+                if (notaCell) notaCell.textContent = data.nota;
+                if (periodoCell) periodoCell.textContent = data.periodo;
+                // actualizar data attributes
+                btn.setAttribute('data-nota', data.nota);
+                btn.setAttribute('data-periodo', data.periodo);
+            } else {
+                // si no hay fila, recargar la página para ver cambios
+                location.reload();
+            }
+        })
+        .catch(err => { console.error(err); showDebug('Error actualizando nota: ' + err.message); alert('Error: ' + err.message); });
+    });
+
     // Lista de materias disponible (coincide con NotasController)
     const materias = {
         1: 'Matemáticas',
@@ -71,8 +169,35 @@ document.addEventListener('DOMContentLoaded', function(){
         3: 'Ciencias'
     };
 
-    // Primero intentar cargar grupos (si existen) y luego estudiantes por grupo.
-    fetch('{{ route('notas.grupos') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+    // Si existen controles renderizados por servidor, evitar duplicar los selects con JS
+    if (window.serverControls) {
+        showDebug('Controles renderizados por servidor — JS no duplicará selects');
+    } else if (window.studentControls) {
+        showDebug('Controles de estudiante renderizados por servidor — JS no duplicará selects');
+        // Si hay un control de materia para estudiante, enlazarlo a la búsqueda por usuario
+        try {
+            const stuSelect = document.getElementById('studentMateriaFilter');
+            if (stuSelect) {
+                stuSelect.addEventListener('change', function(){
+                    const mid = stuSelect.value;
+                    const params = new URLSearchParams();
+                    if (mid) params.append('materia', mid);
+                    // enviar usuario actual desde server (currentUserId)
+                    const uid = '{{ $currentUserId ?? '' }}';
+                    if (uid) params.append('usuario', uid);
+                    const url = '{{ route('notas.filtros') }}' + (params.toString() ? ('?' + params.toString()) : '');
+                    showDebug('Solicitando (estudiante): ' + url);
+                    notasTableBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+                    fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                        .then(data => renderNotas(data))
+                        .catch(err => { console.error(err); showDebug('Error: ' + err.message); notasTableBody.innerHTML = '<tr><td colspan="4">Error al cargar notas</td></tr>'; });
+                });
+            }
+        } catch(e) { console.error(e); }
+    } else {
+        // Primero intentar cargar grupos (si existen) y luego estudiantes por grupo.
+        fetch('{{ route('notas.grupos') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
         .then(r => {
             if (!r.ok) throw new Error('HTTP ' + r.status);
             return r.json();
@@ -404,7 +529,8 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
                 data.forEach(n => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${escapeHtml(n.materia_id || 'N/A')}</td><td>${escapeHtml(n.periodo)}</td><td>${escapeHtml(n.nota)}</td><td>${escapeHtml(n.estudiante?.name || '')}</td>`;
+                    const matName = materias[n.materia_id] || n.materia_id || 'N/A';
+                    tr.innerHTML = `<td>${escapeHtml(matName)}</td><td>${escapeHtml(n.periodo)}</td><td>${escapeHtml(n.nota)}</td><td>${escapeHtml(n.estudiante?.name || '')}</td>`;
                     notasTableBody.appendChild(tr);
                 });
             })
@@ -467,7 +593,8 @@ document.addEventListener('DOMContentLoaded', function(){
             // Rows for notes in this materia
             groups[key].forEach(n => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${escapeHtml(n.materia_id || 'N/A')}</td><td>${escapeHtml(n.periodo)}</td><td>${escapeHtml(n.nota)}</td><td>${escapeHtml(n.estudiante?.name || '')}</td>`;
+                const matName = materias[n.materia_id] || n.materia_id || 'N/A';
+                tr.innerHTML = `<td>${escapeHtml(matName)}</td><td>${escapeHtml(n.periodo)}</td><td>${escapeHtml(n.nota)}</td><td>${escapeHtml(n.estudiante?.name || '')}</td>`;
                 notasTableBody.appendChild(tr);
             });
         });

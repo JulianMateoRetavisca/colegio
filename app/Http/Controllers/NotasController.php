@@ -226,8 +226,70 @@ class NotasController extends Controller
      */
     public function vistaPublica()
     {
-        $notas = NotaModel::with('estudiante')->orderBy('periodo', 'desc')->get();
-        return view('notas.mostrar', compact('notas'));
+        // Esta vista ahora acepta filtros por query string: grupo, materia
+        $request = request();
+        $grupo = $request->query('grupo');
+        $materia = $request->query('materia');
+
+        // lista de materias (coincide con la UI)
+        $materias = [
+            1 => 'Matemáticas',
+            2 => 'Lenguaje',
+            3 => 'Ciencias',
+        ];
+
+        // Obtener grupos disponibles (preferir tabla 'grupos')
+        if (Schema::hasTable('grupos')) {
+            $grupos = \DB::table('grupos')->select('id','nombre')->orderBy('nombre')->get();
+        } else {
+            if (Schema::hasColumn('users','grupo_id')) {
+                $grupos = \DB::table('users')->select('grupo_id as id')->distinct()->whereNotNull('grupo_id')->get()->map(function($r){ return (object)['id' => $r->id, 'nombre' => 'Grupo '.$r->id]; });
+            } elseif (Schema::hasColumn('users','grupo')) {
+                $grupos = \DB::table('users')->select('grupo')->distinct()->whereNotNull('grupo')->get()->map(function($r){ return (object)['id' => $r->grupo, 'nombre' => 'Grupo '.$r->grupo]; });
+            } else {
+                $grupos = collect([]);
+            }
+        }
+
+        $query = NotaModel::with('estudiante');
+        if ($materia) $query->where('materia_id', $materia);
+        if ($grupo) {
+            if (Schema::hasColumn('users','grupo_id')) {
+                $userIds = User::where('grupo_id', $grupo)->pluck('id')->toArray();
+            } elseif (Schema::hasColumn('users','grupo')) {
+                $userIds = User::where('grupo', $grupo)->pluck('id')->toArray();
+            } else {
+                $userIds = [];
+            }
+            if (!empty($userIds)) {
+                $query->whereIn('estudiante_id', $userIds);
+            } else {
+                // no hay usuarios en ese grupo -> devolver vacío
+                $query->whereRaw('0 = 1');
+            }
+        }
+
+        $notas = $query->orderBy('periodo', 'desc')->get();
+
+        // Determinar si el usuario actual es administrador (para mostrar controles server-side)
+        $isAdmin = false;
+        if (Auth::check()) {
+            $rol = Auth::user()->rol;
+            $isAdmin = ($rol->nombre ?? '') === 'Admin' || in_array('acceso_total', $rol->permisos ?? []);
+        }
+
+        // Detectar si es estudiante autenticado
+        $isStudent = false;
+        $currentUserId = null;
+        if (Auth::check()) {
+            $currentUserId = Auth::id();
+            $isStudent = (Auth::user()->rol->nombre ?? '') === 'Estudiante';
+        }
+
+        $selectedGrupo = $grupo;
+        $selectedMateria = $materia;
+
+        return view('notas.mostrar', compact('notas','grupos','materias','selectedGrupo','selectedMateria','isAdmin','isStudent','currentUserId'));
     }
 
     public function ActualizarNota(Request $request, $id)
