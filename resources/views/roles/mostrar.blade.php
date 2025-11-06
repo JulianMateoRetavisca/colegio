@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('content')
@@ -6,8 +5,9 @@
     $usuario = Auth::user();
     $rolUsuario = App\Models\RolesModel::find($usuario->roles_id);
 @endphp
-<div class="container-fluid">
-    <div class="row">
+
+<div class="container-fluid p-0">
+    <div class="row g-0">
         <!-- Sidebar -->
         <div class="col-md-3 col-lg-2 p-0">
             <div class="sidebar">
@@ -83,16 +83,19 @@
                 </nav>
             </div>
         </div>
+
         <!-- Main Content -->
         <div class="col-md-9 col-lg-10">
             <div class="main-content p-4">
-                <h1>Detalles del rol: {{ $rol->nombre }}</h1>
-                <div class="mb-3">
-                    <label class="form-label">Descripción:</label>
-                    <div>{{ $rol->descripcion }}</div>
+                <h1 class="mb-4">Detalles del rol: <span class="text-primary">{{ $rol->nombre }}</span></h1>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Descripción:</label>
+                    <p class="bg-light border rounded p-3">{{ $rol->descripcion }}</p>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label d-block">Permisos por módulo</label>
+
+                <div class="mb-5">
+                    <label class="form-label d-block fw-semibold mb-3">Permisos por módulo</label>
                     <div class="row g-3">
                         @foreach($gruposPermisos as $modulo => $permisos)
                             @php
@@ -120,28 +123,140 @@
                         @endforeach
                     </div>
                 </div>
-                <h3>Usuarios asignados a este rol</h3>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Email</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($usuarios as $usuario)
+
+                <h3 class="mb-3 fw-semibold">Usuarios asignados a este rol</h3>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-dark">
                             <tr>
-                                <td>{{ $usuario->name }}</td>
-                                <td>{{ $usuario->email }}</td>
+                                <th>Nombre</th>
+                                <th>Email</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($usuarios as $usuario)
+                                <tr>
+                                    <td>{{ $usuario->name }}</td>
+                                    <td>{{ $usuario->email }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
                 {{ $usuarios->links() }}
-                <a href="{{ route('roles.index') }}" class="btn btn-secondary">Volver a la lista</a>
-                <a href="{{ route('roles.editar', $rol->id) }}" class="btn btn-warning">Editar rol</a>
+
+                <div class="mt-4">
+                    <a href="{{ route('roles.index') }}" class="btn btn-secondary me-2">
+                        <i class="fas fa-arrow-left me-1"></i>Volver a la lista
+                    </a>
+                    <a href="{{ route('roles.editar', $rol->id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit me-1"></i>Editar rol
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .sidebar {
+        background-color: #1e1f26;
+        color: #fff;
+        min-height: 100vh;
+        width: 230px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        padding-top: 1rem;
+        box-shadow: 3px 0 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar .nav-link {
+        color: #bfc0c3;
+        font-weight: 500;
+        padding: 10px 15px;
+        margin-bottom: 3px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        background-color: #2e2f36;
+        color: #ffffff;
+    }
+
+    .main-content {
+        margin-left: 230px; /* coincide con el ancho de la sidebar */
+        padding: 2rem;
+        background-color: #ffffff;
+        min-height: 100vh;
+    }
+
+    .main-content h1 {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1.5rem;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        border-radius: 12px;
+    }
+
+    .card-header {
+        background-color: #f4f4f4;
+        border-bottom: none;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .btn {
+        border-radius: 8px;
+    }
+
+    .btn-primary {
+        background-color: #1e1f26;
+        border-color: #1e1f26;
+    }
+
+    .btn-primary:hover {
+        background-color: #2e2f36;
+        border-color: #2e2f36;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #1e1f26;
+        border-color: #1e1f26;
+        color: white;
+    }
+
+    /* Ajuste responsive */
+    @media (max-width: 992px) {
+        .sidebar {
+            position: relative;
+            width: 100%;
+            height: auto;
+            box-shadow: none;
+        }
+
+        .main-content {
+            margin-left: 0;
+        }
+    }
+</style>
+@endpush

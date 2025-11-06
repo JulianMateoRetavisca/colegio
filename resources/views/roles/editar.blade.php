@@ -241,6 +241,108 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+@push('styles')
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .sidebar {
+        background-color: #1e1f26;
+        color: #fff;
+        min-height: 100vh;
+        width: 230px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        padding-top: 1rem;
+        box-shadow: 3px 0 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar .nav-link {
+        color: #bfc0c3;
+        font-weight: 500;
+        padding: 10px 15px;
+        margin-bottom: 3px;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+        background-color: #2e2f36;
+        color: #ffffff;
+    }
+
+    .main-content {
+        margin-left: 230px; /* coincide con el ancho de la sidebar */
+        padding: 2rem;
+        background-color: #ffffff;
+        min-height: 100vh;
+    }
+
+    .main-content h1 {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1.5rem;
+    }
+
+    .card {
+        border: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        border-radius: 12px;
+    }
+
+    .card-header {
+        background-color: #f4f4f4;
+        border-bottom: none;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .btn {
+        border-radius: 8px;
+    }
+
+    .btn-primary {
+        background-color: #1e1f26;
+        border-color: #1e1f26;
+    }
+
+    .btn-primary:hover {
+        background-color: #2e2f36;
+        border-color: #2e2f36;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #1e1f26;
+        border-color: #1e1f26;
+        color: white;
+    }
+
+    /* Ajuste responsive */
+    @media (max-width: 992px) {
+        .sidebar {
+            position: relative;
+            width: 100%;
+            height: auto;
+            box-shadow: none;
+        }
+
+        .main-content {
+            margin-left: 0;
+        }
+    }
+</style>
+@endpush
+
                     <button type="submit" class="btn btn-primary">Actualizar rol</button>
                     <a href="{{ route('roles.index') }}" class="btn btn-secondary">Cancelar</a>
                 </form>
