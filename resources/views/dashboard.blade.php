@@ -5,6 +5,8 @@
 
 @section('content')
 <div class="dashboard-container py-4">
+    <!-- navbar -->
+
      <!-- Sidebar -->
         <div class="col-md-3 col-lg-2 p-0">
             @include('partials.sidebar') <!-- SIN CAMBIOS -->

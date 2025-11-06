@@ -1,262 +1,153 @@
 @extends('layouts.app')
 
+@section('title', 'Detalles del Rol')
+
 @section('content')
 @php
     $usuario = Auth::user();
     $rolUsuario = App\Models\RolesModel::find($usuario->roles_id);
 @endphp
 
-<div class="container-fluid p-0">
-    <div class="row g-0">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 p-0">
-            <div class="sidebar">
-                <div class="p-3">
-                    <h6 class="text-white-50 text-uppercase">Menú Principal</h6>
-                </div>
-                <nav class="nav flex-column px-3">
-                    <a class="nav-link" href="{{ route('dashboard') }}">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                    @if($rolUsuario)
-                        @if($rolUsuario->tienePermiso('gestionar_usuarios'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-users-cog me-2"></i>Gestión de Usuarios
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_estudiantes'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-user-graduate me-2"></i>Estudiantes
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_docentes'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-chalkboard-teacher me-2"></i>Docentes
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_roles'))
-                            <a class="nav-link active" href="{{ route('roles.index') }}">
-                                <i class="fas fa-user-shield me-2"></i>Roles y Permisos
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('matricular_estudiantes'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-user-check me-2"></i>Matricular Estudiantes
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_materias'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-book-open me-2"></i>Materias
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_cursos'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-layer-group me-2"></i>Cursos
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_horarios'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-calendar-alt me-2"></i>Horarios
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_disciplina'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-gavel me-2"></i>Disciplina
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('ver_reportes_generales'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-chart-bar me-2"></i>Reportes
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_pagos'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-money-bill-wave me-2"></i>Pagos
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('configurar_sistema'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-cog me-2"></i>Configuración
-                            </a>
-                        @endif
-                    @endif
-                </nav>
+<div class="dashboard-container py-4">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 p-0">
+        @include('partials.sidebar') <!-- SIN CAMBIOS -->
+    </div>
+
+    <div class="container-fluid">
+        <!-- Encabezado -->
+        <div class="welcome-card p-4 mb-4">
+            <h2 class="fw-bold text-dark mb-1">Rol: <span class="text-primary">{{ $rol->nombre }}</span></h2>
+            <p class="text-secondary mb-0">Información detallada de permisos y usuarios asignados</p>
+        </div>
+
+        <!-- Descripción -->
+        <div class="action-card p-4 mb-4">
+            <label class="form-label fw-semibold">Descripción:</label>
+            <p class="text-secondary mb-0">{{ $rol->descripcion }}</p>
+        </div>
+
+        <!-- Permisos -->
+        <div class="recent-card p-4 mb-5">
+            <h5 class="fw-semibold text-dark mb-3"><i class="fas fa-user-shield me-2 text-primary"></i>Permisos por módulo</h5>
+            <div class="row g-4">
+                @foreach($gruposPermisos as $modulo => $permisos)
+                    @php
+                        $permisosSeleccionados = array_intersect(array_keys($permisos), $rol->permisos ?? []);
+                    @endphp
+                    <div class="col-lg-6">
+                        <div class="stat-card p-3 h-100">
+                            <h6 class="fw-bold text-dark">
+                                {{ $modulo }}
+                                <span class="text-secondary small">
+                                    ({{ count($permisosSeleccionados) }}/{{ count($permisos) }})
+                                </span>
+                            </h6>
+
+                            @if(count($permisosSeleccionados))
+                                <ul class="mb-0 ps-3">
+                                    @foreach($permisosSeleccionados as $permiso)
+                                        <li class="text-secondary">{{ $permisosDisponibles[$permiso] ?? $permiso }}</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <span class="text-secondary small">Sin permisos asignados</span>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="col-md-9 col-lg-10">
-            <div class="main-content p-4">
-                <h1 class="mb-4">Detalles del rol: <span class="text-primary">{{ $rol->nombre }}</span></h1>
+        <!-- Usuarios asignados -->
+        <div class="recent-card p-4 mb-4">
+            <h5 class="fw-semibold text-dark mb-3"><i class="fas fa-users me-2 text-primary"></i>Usuarios con este rol</h5>
 
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">Descripción:</label>
-                    <p class="bg-light border rounded p-3">{{ $rol->descripcion }}</p>
-                </div>
-
-                <div class="mb-5">
-                    <label class="form-label d-block fw-semibold mb-3">Permisos por módulo</label>
-                    <div class="row g-3">
-                        @foreach($gruposPermisos as $modulo => $permisos)
-                            @php
-                                $permisosSeleccionados = array_intersect(array_keys($permisos), $rol->permisos ?? []);
-                            @endphp
-                            <div class="col-lg-6">
-                                <div class="card h-100">
-                                    <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-                                        <span>{{ $modulo }}</span>
-                                        <small class="text-muted">{{ count($permisosSeleccionados) }}/{{ count($permisos) }} seleccionados</small>
-                                    </div>
-                                    <div class="card-body">
-                                        @if(count($permisosSeleccionados))
-                                            <ul class="mb-0">
-                                                @foreach($permisosSeleccionados as $permiso)
-                                                    <li>{{ $permisosDisponibles[$permiso] ?? $permiso }}</li>
-                                                @endforeach
-                                            </ul>
-                                        @else
-                                            <span class="text-muted">Sin permisos seleccionados en este módulo</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <h3 class="mb-3 fw-semibold">Usuarios asignados a este rol</h3>
-                <div class="table-responsive mb-4">
-                    <table class="table table-bordered align-middle">
-                        <thead class="table-dark">
+            <div class="table-responsive rounded">
+                <table class="table table-bordered align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($usuarios as $u)
                             <tr>
-                                <th>Nombre</th>
-                                <th>Email</th>
+                                <td class="text-dark">{{ $u->name }}</td>
+                                <td class="text-secondary">{{ $u->email }}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($usuarios as $usuario)
-                                <tr>
-                                    <td>{{ $usuario->name }}</td>
-                                    <td>{{ $usuario->email }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                {{ $usuarios->links() }}
-
-                <div class="mt-4">
-                    <a href="{{ route('roles.index') }}" class="btn btn-secondary me-2">
-                        <i class="fas fa-arrow-left me-1"></i>Volver a la lista
-                    </a>
-                    <a href="{{ route('roles.editar', $rol->id) }}" class="btn btn-warning">
-                        <i class="fas fa-edit me-1"></i>Editar rol
-                    </a>
-                </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
+
+            <div class="mt-3">
+                {{ $usuarios->links() }}
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div class="d-flex gap-3">
+            <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary px-4">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+            <a href="{{ route('roles.editar', $rol->id) }}" class="btn btn-gradient px-4">
+                <i class="fas fa-edit me-2"></i>Editar Rol
+            </a>
         </div>
     </div>
 </div>
-@endsection
 
-@push('styles')
+{{-- ===================== ESTILOS ===================== --}}
 <style>
     body {
-        background-color: #f8f9fa;
-        font-family: 'Inter', sans-serif;
-        margin: 0;
-        padding: 0;
+        background: linear-gradient(135deg, #dce3ff 0%, #e6e0ff 100%);
+        font-family: 'Poppins', sans-serif;
     }
 
-    .sidebar {
-        background-color: #1e1f26;
-        color: #fff;
+    .dashboard-container {
         min-height: 100vh;
-        width: 230px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 100;
-        padding-top: 1rem;
-        box-shadow: 3px 0 6px rgba(0, 0, 0, 0.2);
+        padding-left: 260px; /* sidebar */
     }
 
-    .sidebar .nav-link {
-        color: #bfc0c3;
-        font-weight: 500;
-        padding: 10px 15px;
-        margin-bottom: 3px;
-        border-radius: 8px;
-        transition: all 0.2s;
+    .welcome-card,
+    .action-card,
+    .recent-card,
+    .stat-card {
+        background: rgba(255, 255, 255, 0.65);
+        border-radius: 18px;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.35);
     }
 
-    .sidebar .nav-link:hover,
-    .sidebar .nav-link.active {
-        background-color: #2e2f36;
-        color: #ffffff;
+    .stat-card:hover {
+        transform: translateY(-3px);
+        transition: 0.3s ease;
     }
 
-    .main-content {
-        margin-left: 230px; /* coincide con el ancho de la sidebar */
-        padding: 2rem;
-        background-color: #ffffff;
-        min-height: 100vh;
-    }
-
-    .main-content h1 {
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 1.5rem;
-    }
-
-    .card {
+    .btn-gradient {
+        background: linear-gradient(135deg, #6b73ff, #a06bff);
+        color: #fff !important;
         border: none;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         border-radius: 12px;
+        font-weight: 500;
     }
 
-    .card-header {
-        background-color: #f4f4f4;
-        border-bottom: none;
+    .btn-outline-secondary {
+        border-radius: 12px;
+        font-weight: 500;
+        color: #2b2b2b !important;
+        border: 2px solid #b1b1b1;
     }
 
-    .form-label {
-        font-weight: 600;
-        color: #333;
+    .text-dark {
+        color: #2b2b2b !important;
     }
 
-    .btn {
-        border-radius: 8px;
-    }
-
-    .btn-primary {
-        background-color: #1e1f26;
-        border-color: #1e1f26;
-    }
-
-    .btn-primary:hover {
-        background-color: #2e2f36;
-        border-color: #2e2f36;
-    }
-
-    .btn-outline-primary:hover {
-        background-color: #1e1f26;
-        border-color: #1e1f26;
-        color: white;
-    }
-
-    /* Ajuste responsive */
-    @media (max-width: 992px) {
-        .sidebar {
-            position: relative;
-            width: 100%;
-            height: auto;
-            box-shadow: none;
-        }
-
-        .main-content {
-            margin-left: 0;
-        }
+    .text-secondary {
+        color: #5a5a5a !important;
     }
 </style>
-@endpush
+@endsection

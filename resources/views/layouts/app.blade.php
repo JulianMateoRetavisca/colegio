@@ -12,46 +12,65 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
+        /* 🎨 Variables globales de color */
+        :root {
+            --color-primario: #667eea;
+            --color-secundario: #764ba2;
+            --color-acento: #3498db;
+            --color-fondo: #f8f9fa;
+            --color-sidebar: #2c3e50;
+            --color-hover: #34495e;
+            --color-texto: #2c3e50;
+            --color-blanco: #ffffff;
+        }
+
+        /* 🧩 Estilos generales */
+        body {
+            background: var(--color-fondo);
+            color: var(--color-texto);
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--color-texto) !important;
+        }
+
         .login-container {
             min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-secundario) 100%);
         }
-        
+
         .login-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
-        
-        .navbar-brand {
-            font-weight: bold;
-            color: #2c3e50 !important;
-        }
-        
+
         .sidebar {
-            background: #2c3e50;
+            background: var(--color-sidebar);
             min-height: calc(100vh - 56px);
         }
-        
+
         .sidebar .nav-link {
             color: #ecf0f1;
             padding: 12px 20px;
             border-radius: 5px;
             margin: 2px 0;
         }
-        
+
         .sidebar .nav-link:hover {
-            background: #34495e;
-            color: #fff;
+            background: var(--color-hover);
+            color: var(--color-blanco);
         }
-        
+
         .sidebar .nav-link.active {
-            background: #3498db;
-            color: #fff;
+            background: var(--color-acento);
+            color: var(--color-blanco);
         }
-        
+
         .main-content {
-            background: #f8f9fa;
+            background: var(--color-fondo);
             min-height: calc(100vh - 56px);
         }
     </style>
