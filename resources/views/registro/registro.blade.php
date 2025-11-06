@@ -1,128 +1,216 @@
 @extends('layouts.app')
 
-@section('title', 'Iniciar Sesión - Colegio')
+@section('title', 'Registrar Usuario - Colegio')
 
 @section('content')
-<div class="login-container d-flex align-items-center justify-content-center">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="login-card p-4">
-                    <div class="text-center mb-4">
-                       <i class="fas fa-book fa-3x text-primary" aria-hidden="true"></i>
-                        <h3 class="fw-bold text-dark">Colegio</h3>
-                        <p class="text-muted">Registrar usuario</p>
-                    </div>
+<style>
+    body {
+        background: linear-gradient(135deg, #5f2c82, #49a09d);
+        background-size: 200% 200%;
+        animation: gradientShift 8s ease infinite;
+        min-height: 100vh;
+    }
 
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 
-                    <form method="POST" action="{{ route('register') }}">
-                        @csrf
-                        
-                        <div class="mb-3">
-                            <label for="name" class="form-label">
-                                <i class="fas fa-user me-1"></i>Nombre
-                            </label>
-                            <input type="text" 
-                                   class="form-control @error('name') is-invalid @enderror" 
-                                   id="name" 
-                                   name="name" 
-                                   value="{{ old('name') }}" 
-                                   required 
-                                   autocomplete="name" 
-                                   autofocus
-                                   placeholder="Ingresa tu nombre">
-                            @error('name')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
+    .login-card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(12px);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.3);
+        color: #fff;
+        transition: all 0.3s ease;
+    }
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">
-                                <i class="fas fa-envelope me-1"></i>Correo electrónico
-                            </label>
-                            <input type="email" 
-                                   class="form-control @error('email') is-invalid @enderror" 
-                                   id="email" 
-                                   name="email" 
-                                   value="{{ old('email') }}" 
-                                   required 
-                                   autocomplete="email" 
-                                   autofocus
-                                   placeholder="Ingresa tu correo">
-                            @error('email')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
+    .login-card:hover {
+        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.45);
+    }
 
-                        <div class="mb-3">
-                            <label for="password" class="form-label">
-                                <i class="fas fa-lock me-1"></i>Contraseña
-                            </label>
-                            <input type="password" 
-                                   class="form-control @error('password') is-invalid @enderror" 
-                                   id="password" 
-                                   name="password" 
-                                   required 
-                                   autocomplete="new-password"
-                                   placeholder="Ingresa tu contraseña">
-                            @error('password')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                            <label for="password_confirmation" class="form-label">
-                                <i class="fas fa-lock me-1"></i>Repetir Contraseña
-                            </label>
-                            <input type="password" 
-                                   class="form-control @error('password_confirmation') is-invalid @enderror" 
-                                   id="password_confirmation" 
-                                   name="password_confirmation" 
-                                   required 
-                                   autocomplete="new-password"
-                                   placeholder="Repite tu contraseña">
-                            @error('password_confirmation')
-                                <div class="invalid-feedback">
-                                    {{ $message }}
-                                </div>
-                            @enderror
-                        </div>
+    .form-control {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 12px;
+        color: #fff;
+    }
 
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                            <label class="form-check-label" for="remember">
-                                Recordarme
-                            </label>
-                        </div>
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-user-plus me-1"></i>Registrarse
-                            </button>
-                        </div>
-                    </form>
+    .form-label {
+        color: #e0e0e0;
+        font-weight: 500;
+    }
 
-                    <div class="text-center mt-4">
-                        <small class="text-muted">
-                            ¿No tienes una cuenta? 
-                            <a href="{{ route('register')}}" class="text-decoration-none">Regístrate aquí</a>
-                        </small>
-                    </div>
-                </div>
+    .btn-primary {
+        background: linear-gradient(90deg, #6a11cb, #2575fc);
+        border: none;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(90deg, #2575fc, #6a11cb);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(100, 100, 255, 0.3);
+    }
+
+    .text-muted a {
+        color: #a9baff !important;
+    }
+
+    .login-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .alert-danger {
+        background: rgba(255, 0, 60, 0.2);
+        color: #ffe1e1;
+        border: none;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="d-flex align-items-center justify-content-center min-vh-100">
+    <div class="login-card p-5" style="width: 100%; max-width: 440px;">
+        <div class="text-center mb-4">
+            <div class="login-icon">
+                <i class="fas fa-book"></i>
             </div>
+            <h3 class="fw-bold mb-1 text-white">Colegio</h3>
+            <p class="text-light opacity-75">Crea tu cuenta</p>
+        </div>
+
+        {{-- Errores --}}
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0 small">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        {{-- Formulario --}}
+        <form method="POST" action="{{ route('register') }}">
+            @csrf
+
+            <div class="mb-3">
+                <label for="name" class="form-label">
+                    <i class="fas fa-user me-1"></i> Nombre
+                </label>
+                <input type="text"
+                       class="form-control @error('name') is-invalid @enderror"
+                       id="name"
+                       name="name"
+                       value="{{ old('name') }}"
+                       required
+                       autocomplete="name"
+                       placeholder="Ingresa tu nombre">
+                @error('name')
+                    <div class="invalid-feedback text-light small">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope me-1"></i> Correo electrónico
+                </label>
+                <input type="email"
+                       class="form-control @error('email') is-invalid @enderror"
+                       id="email"
+                       name="email"
+                       value="{{ old('email') }}"
+                       required
+                       autocomplete="email"
+                       placeholder="ejemplo@correo.com">
+                @error('email')
+                    <div class="invalid-feedback text-light small">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock me-1"></i> Contraseña
+                </label>
+                <div class="input-group">
+                    <input type="password"
+                           class="form-control @error('password') is-invalid @enderror"
+                           id="password"
+                           name="password"
+                           required
+                           autocomplete="new-password"
+                           placeholder="••••••••">
+                    <button class="btn btn-outline-light" type="button" id="togglePassword" style="border-radius: 0 12px 12px 0;">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                @error('password')
+                    <div class="invalid-feedback text-light small">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
+                <label for="password_confirmation" class="form-label">
+                    <i class="fas fa-lock me-1"></i> Confirmar Contraseña
+                </label>
+                <input type="password"
+                       class="form-control @error('password_confirmation') is-invalid @enderror"
+                       id="password_confirmation"
+                       name="password_confirmation"
+                       required
+                       autocomplete="new-password"
+                       placeholder="Repite tu contraseña">
+                @error('password_confirmation')
+                    <div class="invalid-feedback text-light small">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user-plus me-2"></i> Registrarse
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center mt-4">
+            <small class="text-light">
+                ¿Ya tienes una cuenta?
+                <a href="{{ route('login') }}" class="fw-semibold text-decoration-none">Inicia sesión</a>
+            </small>
         </div>
     </div>
 </div>
+
+{{-- Script mostrar/ocultar contraseña --}}
+@push('scripts')
+<script>
+document.getElementById('togglePassword').addEventListener('click', function () {
+    const input = document.getElementById('password');
+    const icon = this.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+});
+</script>
+@endpush
 @endsection

@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('content')
@@ -6,141 +5,123 @@
     $usuario = Auth::user();
     $rolUsuario = App\Models\RolesModel::find($usuario->roles_id);
 @endphp
-<div class="container-fluid">
-    <div class="row">
+
+<div class="container-fluid min-vh-100 dashboard-bg">
+    <div class="row g-0">
         <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 p-0">
-            <div class="sidebar">
-                <div class="p-3">
-                    <h6 class="text-white-50 text-uppercase">Menú Principal</h6>
-                </div>
-                <nav class="nav flex-column px-3">
-                    <a class="nav-link" href="{{ route('dashboard') }}">
-                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                    </a>
-                    @if($rolUsuario)
-                        @if($rolUsuario->tienePermiso('gestionar_usuarios'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-users-cog me-2"></i>Gestión de Usuarios
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_estudiantes'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-user-graduate me-2"></i>Estudiantes
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_docentes'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-chalkboard-teacher me-2"></i>Docentes
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_roles'))
-                            <a class="nav-link active" href="{{ route('roles.index') }}">
-                                <i class="fas fa-user-shield me-2"></i>Roles y Permisos
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('matricular_estudiantes'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-user-check me-2"></i>Matricular Estudiantes
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_materias'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-book-open me-2"></i>Materias
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_cursos'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-layer-group me-2"></i>Cursos
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_horarios'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-calendar-alt me-2"></i>Horarios
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_disciplina'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-gavel me-2"></i>Disciplina
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('ver_reportes_generales'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-chart-bar me-2"></i>Reportes
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('gestionar_pagos'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-money-bill-wave me-2"></i>Pagos
-                            </a>
-                        @endif
-                        @if($rolUsuario->tienePermiso('configurar_sistema'))
-                            <a class="nav-link" href="#">
-                                <i class="fas fa-cog me-2"></i>Configuración
-                            </a>
-                        @endif
-                    @endif
-                </nav>
-            </div>
+        <div class="col-md-3 col-lg-2 p-0 shadow-sm sidebar-bg">
+            @include('partials.sidebar')
         </div>
+
         <!-- Main Content -->
-        <div class="col-md-9 col-lg-10">
-            <div class="main-content p-4">
-                <h1>Editar rol: {{ $rol->nombre }}</h1>
+        <div class="col-md-9 col-lg-10 px-5 py-4">
+            <div class="main-content">
+
+                <div class="mb-4 border-bottom pb-2">
+                    <h1 class="fw-bold text-primary">
+                        <i class="fas fa-user-edit me-2"></i> Editar rol: {{ $rol->nombre }}
+                    </h1>
+                    <p class="text-muted mb-0">Modifica los permisos o la descripción del rol seleccionado.</p>
+                </div>
+
                 @if($errors->any())
-                    <div class="alert alert-danger">
-                        <ul>
+                    <div class="alert alert-danger shadow-sm rounded-3 glass-card">
+                        <ul class="mb-0 ps-3">
                             @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
                         </ul>
                     </div>
                 @endif
-                <form action="{{ route('roles.actualizar', $rol->id) }}" method="POST">
+
+                <form action="{{ route('roles.actualizar', $rol->id) }}" method="POST"
+                      class="glass-card p-4 rounded-4 border">
                     @csrf
                     @method('PUT')
-                    <div class="mb-3">
-                        <label for="nombre" class="form-label">Nombre del rol</label>
-                        <input type="text" name="nombre" id="nombre" class="form-control" required value="{{ old('nombre', $rol->nombre) }}" @if($esRolSistema) readonly @endif>
+
+                    <div class="mb-4">
+                        <label for="nombre" class="form-label fw-semibold text-secondary">
+                            Nombre del rol
+                        </label>
+                        <input type="text" name="nombre" id="nombre"
+                               class="form-control shadow-sm rounded-3"
+                               required value="{{ old('nombre', $rol->nombre) }}"
+                               @if($esRolSistema) readonly @endif>
                     </div>
-                    <div class="mb-3">
-                        <label for="descripcion" class="form-label">Descripción</label>
-                        <textarea name="descripcion" id="descripcion" class="form-control" required @if($esRolSistema) readonly @endif>{{ old('descripcion', $rol->descripcion) }}</textarea>
+
+                    <div class="mb-4">
+                        <label for="descripcion" class="form-label fw-semibold text-secondary">
+                            Descripción
+                        </label>
+                        <textarea name="descripcion" id="descripcion"
+                                  class="form-control shadow-sm rounded-3"
+                                  rows="2" required
+                                  @if($esRolSistema) readonly @endif>{{ old('descripcion', $rol->descripcion) }}</textarea>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label d-block">Permisos por módulo</label>
-                        <div class="d-flex flex-wrap gap-2 mb-3">
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="marcar_todo">Marcar todo</button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm" id="desmarcar_todo">Desmarcar todo</button>
-                            <button type="button" class="btn btn-outline-success btn-sm" id="expandir_todo">Expandir todo</button>
-                            <button type="button" class="btn btn-outline-dark btn-sm" id="contraer_todo">Contraer todo</button>
+
+                    <div class="mb-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">
+                                <i class="fas fa-key me-2 text-primary"></i> Permisos por módulo
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm rounded-3 shadow-sm" id="marcar_todo">
+                                    <i class="fas fa-check-double me-1"></i> Marcar todo
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-3 shadow-sm" id="desmarcar_todo">
+                                    <i class="fas fa-times me-1"></i> Desmarcar todo
+                                </button>
+                                <button type="button" class="btn btn-outline-success btn-sm rounded-3 shadow-sm" id="expandir_todo">
+                                    <i class="fas fa-expand me-1"></i> Expandir
+                                </button>
+                                <button type="button" class="btn btn-outline-dark btn-sm rounded-3 shadow-sm" id="contraer_todo">
+                                    <i class="fas fa-compress me-1"></i> Contraer
+                                </button>
+                            </div>
                         </div>
-                        <div class="row g-3">
+
+                        <div class="row g-4">
                             @foreach($gruposPermisos as $modulo => $permisos)
                                 <div class="col-lg-6">
-                                    <div class="card h-100">
-                                        <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-                                            <span>
+                                    <div class="card h-100 border-0 shadow-sm rounded-4 glass-card">
+                                        <div class="card-header d-flex justify-content-between align-items-center text-white"
+                                             style="background: linear-gradient(90deg, #6b73ff, #a06bff); border-radius: 14px 14px 0 0;">
+                                            <span class="fw-semibold">
                                                 {{ $modulo }}
-                                                <small class="ms-2 text-muted conteo-modulo" data-modulo="{{ Str::slug($modulo) }}" data-total="{{ count($permisos) }}">
-                                                    Seleccionados: <span class="seleccionados">0</span>/{{ count($permisos) }}
+                                                <small class="ms-2 text-light conteo-modulo"
+                                                       data-modulo="{{ Str::slug($modulo) }}"
+                                                       data-total="{{ count($permisos) }}">
+                                                    (<span class="seleccionados">0</span>/{{ count($permisos) }})
                                                 </small>
                                             </span>
-                                            <div class="form-check form-check-inline m-0">
-                                                <input class="form-check-input marcar-modulo" type="checkbox" id="marcar_modulo_{{ Str::slug($modulo) }}" data-modulo="{{ Str::slug($modulo) }}">
-                                                <label class="form-check-label" for="marcar_modulo_{{ Str::slug($modulo) }}">Seleccionar todo</label>
+                                            <div class="form-check m-0">
+                                                <input class="form-check-input marcar-modulo" type="checkbox"
+                                                       id="marcar_modulo_{{ Str::slug($modulo) }}"
+                                                       data-modulo="{{ Str::slug($modulo) }}">
+                                                <label class="form-check-label text-white small"
+                                                       for="marcar_modulo_{{ Str::slug($modulo) }}">Seleccionar todo</label>
                                             </div>
                                         </div>
-                                        <div class="card-body contenedor-permisos" data-modulo="{{ Str::slug($modulo) }}">
-                                            <div class="mb-3">
-                                                <input type="text" class="form-control form-control-sm buscador-modulo" placeholder="Buscar permisos en {{ $modulo }}" data-modulo="{{ Str::slug($modulo) }}">
-                                            </div>
+
+                                        <div class="card-body contenedor-permisos bg-light"
+                                             data-modulo="{{ Str::slug($modulo) }}">
+                                            <input type="text" class="form-control form-control-sm mb-3 rounded-3 shadow-sm buscador-modulo"
+                                                   placeholder="Buscar permisos..." data-modulo="{{ Str::slug($modulo) }}">
                                             <div class="row">
                                                 @foreach($permisos as $permiso => $desc)
-                                                    <div class="col-md-12 permiso-row" data-etiqueta="{{ Str::lower($desc) }}" data-modulo="{{ Str::slug($modulo) }}">
+                                                    <div class="col-12 permiso-row"
+                                                         data-etiqueta="{{ Str::lower($desc) }}"
+                                                         data-modulo="{{ Str::slug($modulo) }}">
                                                         <div class="form-check mb-2">
-                                                            <input class="form-check-input permiso-item permiso-{{ Str::slug($modulo) }}" type="checkbox" name="permisos[]" value="{{ $permiso }}" id="permiso_{{ $permiso }}" @if(in_array($permiso, $rol->permisos ?? [])) checked @endif>
-                                                            <label class="form-check-label" for="permiso_{{ $permiso }}">{{ $desc }}</label>
+                                                            <input class="form-check-input permiso-item permiso-{{ Str::slug($modulo) }}"
+                                                                   type="checkbox" name="permisos[]"
+                                                                   value="{{ $permiso }}"
+                                                                   id="permiso_{{ $permiso }}"
+                                                                   @if(in_array($permiso, $rol->permisos ?? [])) checked @endif>
+                                                            <label class="form-check-label text-secondary"
+                                                                   for="permiso_{{ $permiso }}">
+                                                                {{ $desc }}
+                                                            </label>
                                                         </div>
                                                     </div>
                                                 @endforeach
@@ -151,6 +132,67 @@
                             @endforeach
                         </div>
                     </div>
+
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-gradient px-4 rounded-3 shadow-sm">
+                            <i class="fas fa-save me-2"></i> Actualizar rol
+                        </button>
+                        <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary px-4 rounded-3 shadow-sm">
+                            <i class="fas fa-arrow-left me-2"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+body {
+    background: linear-gradient(135deg, #dce3ff 0%, #e6e0ff 100%);
+    font-family: 'Poppins', sans-serif;
+}
+
+.dashboard-bg {
+    background: linear-gradient(135deg, #dce3ff 0%, #e6e0ff 100%);
+}
+
+.sidebar-bg {
+    background-color: #1f2937;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.btn-gradient {
+    background: linear-gradient(135deg, #6b73ff, #a06bff);
+    border: none;
+    color: white !important;
+    font-weight: 500;
+    transition: 0.3s ease;
+}
+.btn-gradient:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.text-dark {
+    color: #2b2b2b !important;
+}
+.text-secondary {
+    color: #5a5a5a !important;
+}
+.card-header {
+    border-bottom: none;
+}
+</style>
+
+@endsection
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -158,13 +200,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const desmarcarTodo = document.getElementById('desmarcar_todo');
     const expandirTodo = document.getElementById('expandir_todo');
     const contraerTodo = document.getElementById('contraer_todo');
+
     function actualizarConteoModulo(modulo) {
         const items = document.querySelectorAll(`.permiso-${modulo}`);
         const seleccionados = Array.from(items).filter(it => it.checked).length;
         const contenedor = document.querySelector(`.conteo-modulo[data-modulo="${modulo}"]`);
-        if (contenedor) {
-            contenedor.querySelector('.seleccionados').textContent = seleccionados;
-        }
+        if (contenedor) contenedor.querySelector('.seleccionados').textContent = seleccionados;
         const toggle = document.getElementById(`marcar_modulo_${modulo}`);
         if (toggle) {
             const total = items.length;
@@ -172,182 +213,60 @@ document.addEventListener('DOMContentLoaded', function() {
             toggle.checked = seleccionados === total;
         }
     }
+
     function actualizarTodosLosConteos() {
         document.querySelectorAll('.conteo-modulo').forEach(el => {
             actualizarConteoModulo(el.getAttribute('data-modulo'));
         });
     }
-    if (marcarTodo) marcarTodo.addEventListener('click', () => {
+
+    marcarTodo?.addEventListener('click', () => {
         document.querySelectorAll('.permiso-item').forEach(cb => cb.checked = true);
         document.querySelectorAll('.marcar-modulo').forEach(cb => cb.checked = true);
         actualizarTodosLosConteos();
     });
-    if (desmarcarTodo) desmarcarTodo.addEventListener('click', () => {
+
+    desmarcarTodo?.addEventListener('click', () => {
         document.querySelectorAll('.permiso-item').forEach(cb => cb.checked = false);
         document.querySelectorAll('.marcar-modulo').forEach(cb => cb.checked = false);
         actualizarTodosLosConteos();
     });
 
-    // Expandir/Contraer todo
-    function setModulosVisibles(visible) {
-        document.querySelectorAll('.contenedor-permisos').forEach(body => {
-            if (visible) {
-                body.classList.remove('d-none');
-            } else {
-                body.classList.add('d-none');
-            }
-        });
-    }
-    if (expandirTodo) expandirTodo.addEventListener('click', () => setModulosVisibles(true));
-    if (contraerTodo) contraerTodo.addEventListener('click', () => setModulosVisibles(false));
+    const setModulosVisibles = visible => {
+        document.querySelectorAll('.contenedor-permisos')
+            .forEach(body => body.classList.toggle('d-none', !visible));
+    };
+
+    expandirTodo?.addEventListener('click', () => setModulosVisibles(true));
+    contraerTodo?.addEventListener('click', () => setModulosVisibles(false));
 
     document.querySelectorAll('.marcar-modulo').forEach(cb => {
-        cb.addEventListener('change', (e) => {
-            const modulo = e.target.getAttribute('data-modulo');
-            const items = document.querySelectorAll(`.permiso-${modulo}`);
-            items.forEach(it => it.checked = e.target.checked);
+        cb.addEventListener('change', e => {
+            const modulo = e.target.dataset.modulo;
+            document.querySelectorAll(`.permiso-${modulo}`).forEach(it => it.checked = e.target.checked);
             actualizarConteoModulo(modulo);
         });
     });
 
-    // Cambios individuales actualizan conteos e indeterminate
     document.querySelectorAll('.permiso-item').forEach(cb => {
-        cb.addEventListener('change', (e) => {
-            const clases = Array.from(e.target.classList);
-            const moduloClass = clases.find(c => c.startsWith('permiso-') && c !== 'permiso-item');
-            if (moduloClass) {
-                const modulo = moduloClass.replace('permiso-','');
-                actualizarConteoModulo(modulo);
-            }
-        })
+        cb.addEventListener('change', e => {
+            const modulo = e.target.className.match(/permiso-(\S+)/)[1];
+            actualizarConteoModulo(modulo);
+        });
     });
 
-    // Buscador por módulo
     document.querySelectorAll('.buscador-modulo').forEach(inp => {
-        inp.addEventListener('input', (e) => {
+        inp.addEventListener('input', e => {
             const q = e.target.value.trim().toLowerCase();
-            const modulo = e.target.getAttribute('data-modulo');
-            const rows = document.querySelectorAll(`.permiso-row[data-modulo="${modulo}"]`);
-            rows.forEach(row => {
-                const etiqueta = row.getAttribute('data-etiqueta');
-                const visible = q === '' || etiqueta.includes(q);
+            const modulo = e.target.dataset.modulo;
+            document.querySelectorAll(`.permiso-row[data-modulo="${modulo}"]`).forEach(row => {
+                const visible = q === '' || row.dataset.etiqueta.includes(q);
                 row.classList.toggle('d-none', !visible);
             });
         });
     });
 
-    // Inicializar conteos con estado actual
     actualizarTodosLosConteos();
 });
 </script>
 @endpush
-@push('styles')
-<style>
-    body {
-        background-color: #f8f9fa;
-        font-family: 'Inter', sans-serif;
-        margin: 0;
-        padding: 0;
-    }
-
-    .sidebar {
-        background-color: #1e1f26;
-        color: #fff;
-        min-height: 100vh;
-        width: 230px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 100;
-        padding-top: 1rem;
-        box-shadow: 3px 0 6px rgba(0, 0, 0, 0.2);
-    }
-
-    .sidebar .nav-link {
-        color: #bfc0c3;
-        font-weight: 500;
-        padding: 10px 15px;
-        margin-bottom: 3px;
-        border-radius: 8px;
-        transition: all 0.2s;
-    }
-
-    .sidebar .nav-link:hover,
-    .sidebar .nav-link.active {
-        background-color: #2e2f36;
-        color: #ffffff;
-    }
-
-    .main-content {
-        margin-left: 230px; /* coincide con el ancho de la sidebar */
-        padding: 2rem;
-        background-color: #ffffff;
-        min-height: 100vh;
-    }
-
-    .main-content h1 {
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 1.5rem;
-    }
-
-    .card {
-        border: none;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        border-radius: 12px;
-    }
-
-    .card-header {
-        background-color: #f4f4f4;
-        border-bottom: none;
-    }
-
-    .form-label {
-        font-weight: 600;
-        color: #333;
-    }
-
-    .btn {
-        border-radius: 8px;
-    }
-
-    .btn-primary {
-        background-color: #1e1f26;
-        border-color: #1e1f26;
-    }
-
-    .btn-primary:hover {
-        background-color: #2e2f36;
-        border-color: #2e2f36;
-    }
-
-    .btn-outline-primary:hover {
-        background-color: #1e1f26;
-        border-color: #1e1f26;
-        color: white;
-    }
-
-    /* Ajuste responsive */
-    @media (max-width: 992px) {
-        .sidebar {
-            position: relative;
-            width: 100%;
-            height: auto;
-            box-shadow: none;
-        }
-
-        .main-content {
-            margin-left: 0;
-        }
-    }
-</style>
-@endpush
-
-                    <button type="submit" class="btn btn-primary">Actualizar rol</button>
-                    <a href="{{ route('roles.index') }}" class="btn btn-secondary">Cancelar</a>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
