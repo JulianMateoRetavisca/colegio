@@ -77,6 +77,13 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{grupo}/asignar', [App\Http\Controllers\GrupoController::class, 'asignarGuardar'])->name('asignar.guardar');
     });
 
+    // Rutas para gestionar horarios (vista básica)
+    Route::prefix('horarios')->name('horarios.')->group(function () {
+        Route::get('/', [App\Http\Controllers\HorarioController::class, 'index'])->name('index');
+        // ruta para guardar un nuevo horario (formulario en la vista apunta a 'horarios.store')
+        Route::post('/', [App\Http\Controllers\HorarioController::class, 'store'])->name('store');
+    });
+
     // Rutas para gestionar usuarios (listar, editar, actualizar, eliminar)
     Route::prefix('usuarios')->name('usuarios.')->group(function () {
         Route::get('/', [UsuarioController::class, 'index'])->name('index');

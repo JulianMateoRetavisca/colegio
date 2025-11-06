@@ -149,7 +149,7 @@ if ($usuario && $usuario->roles_id) {
                 </a>
             @endif
             @if($rol->tienePermiso('gestionar_horarios'))
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="{{ route('horarios.index') }}">
                     <i class="fas fa-calendar-alt me-2"></i>
                     <span class="label">Horarios</span>
                 </a>
