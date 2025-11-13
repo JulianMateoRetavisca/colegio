@@ -20,4 +20,10 @@ class Materia extends Model
     {
         return $this->hasMany(Horario::class, 'materia_id');
     }
+
+    public function grupos()
+    {
+        return $this->belongsToMany(Grupo::class, 'grupo_materia', 'materia_id', 'grupo_id')
+                    ->withTimestamps();
+    }
 }

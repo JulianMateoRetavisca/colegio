@@ -151,7 +151,7 @@ if ($usuario && $usuario->roles_id) {
             @endif
 
             @if($rol->tienePermiso('gestionar_materias'))
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="{{ route('materias.index') }}">
                     <i class="fas fa-book-open me-2"></i>
                     <span class="label">Materias</span>
                 </a>
