@@ -93,6 +93,17 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{usuario}', [UsuarioController::class, 'actualizar'])->name('actualizar');
         Route::delete('/{usuario}', [UsuarioController::class, 'eliminar'])->name('eliminar');
     });
+
+    // Rutas para gestionar materias (CRUD + asignar a grupos)
+    Route::prefix('materias')->name('materias.')->group(function () {
+        Route::get('/', [App\Http\Controllers\MateriaController::class, 'index'])->name('index');
+        Route::get('/crear', [App\Http\Controllers\MateriaController::class, 'crear'])->name('crear');
+        Route::post('/', [App\Http\Controllers\MateriaController::class, 'store'])->name('store');
+        Route::get('/{materia}/editar', [App\Http\Controllers\MateriaController::class, 'editar'])->name('editar');
+        Route::put('/{materia}', [App\Http\Controllers\MateriaController::class, 'actualizar'])->name('actualizar');
+        Route::delete('/{materia}', [App\Http\Controllers\MateriaController::class, 'eliminar'])->name('eliminar');
+        Route::get('/asignar', [App\Http\Controllers\MateriaController::class, 'asignar'])->name('asignar');
+    });
 });
 
 // Exponer la vista pública de notas fuera del middleware 'auth' para que cualquiera pueda verla

@@ -16,4 +16,15 @@ class Grupo extends Model
     {
         return $this->hasMany(User::class, 'grupo_id');
     }
+
+    public function materias()
+    {
+        return $this->belongsToMany(Materia::class, 'grupo_materia', 'grupo_id', 'materia_id')
+                    ->withTimestamps();
+    }
+
+    public function horarios()
+    {
+        return $this->hasMany(Horario::class, 'grupo_id');
+    }
 }
