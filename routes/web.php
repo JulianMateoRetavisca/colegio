@@ -116,7 +116,7 @@ Route::prefix('notas')->name('notas.')->group(function () {
 
 //Rutas para docentes
 Route::prefix('docentes')->name('docentes.')->middleware('auth')->group(function () {
-    Route::get('/', [App\Http\Controllers\DocenteController::class, 'index'])->name('index');
+    Route::get('/index', [App\Http\Controllers\DocenteController::class, 'index'])->name('index');
     Route::get('/crear', [App\Http\Controllers\DocenteController::class, 'crear'])->name('crear');
     Route::post('/', [App\Http\Controllers\DocenteController::class, 'store'])->name('store');
 });
