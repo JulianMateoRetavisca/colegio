@@ -8,41 +8,33 @@ use App\Models\User;
 
 class MatriculaController extends Controller
 {
-    // Vista inicial para que el acudiente inicie el proceso de matrícula
     public function iniciarMatricula()
     {
-        // Verificar si el usuario está autenticado
         if (!Auth::check()) {
             return redirect('/login')->with('error', 'Debes iniciar sesión para continuar.');
         }
 
         $user = Auth::user();
 
-        // Validar que el usuario tenga rol de acudiente (roles_id = 5)
-        if ($user->roles_id != 5) {
+        if ($user->roles_id != 7) {
             return redirect('/dashboard')->with('error', 'No tienes permisos para iniciar la matrícula.');
         }
 
-        // Retornar la vista donde el acudiente ingresará los datos de matrícula
         return view('matricula.iniciar');
     }
 
-    // Guardar los datos de la matrícula en la base de datos
     public function guardarMatricula(Request $request)
     {
-        // Verificar sesión
         if (!Auth::check()) {
             return redirect('/login')->with('error', 'Debes iniciar sesión para continuar.');
         }
 
         $user = Auth::user();
 
-        // Solo los acudientes pueden registrar una matrícula
-        if ($user->roles_id != 5) {
+        if ($user->roles_id != 7) {
             return redirect('/dashboard')->with('error', 'No tienes permisos para realizar esta acción.');
         }
 
-        // Validar los datos del formulario
         $request->validate([
             'nombre_estudiante' => 'required|string|max:100',
             'grado' => 'required|string|max:50',
@@ -51,7 +43,6 @@ class MatriculaController extends Controller
             'correo_contacto' => 'required|email|max:100',
         ]);
 
-        // Crear nueva matrícula
         $matricula = new Matricula();
         $matricula->acudiente_id = $user->id;
         $matricula->nombre_estudiante = $request->nombre_estudiante;
@@ -62,11 +53,9 @@ class MatriculaController extends Controller
         $matricula->estado = 'pendiente';
         $matricula->save();
 
-        // Retornar con mensaje de éxito
         return redirect()->route('matricula.iniciar')->with('success', 'Matrícula iniciada correctamente. Pronto recibirás confirmación.');
     }
 
-    // (Opcional) Mostrar las matrículas registradas por el acudiente
     public function verMisMatriculas()
     {
         if (!Auth::check()) {
@@ -75,7 +64,7 @@ class MatriculaController extends Controller
 
         $user = Auth::user();
 
-        if ($user->roles_id != 5) {
+        if ($user->roles_id != 7) {
             return redirect('/dashboard')->with('error', 'No tienes permisos para ver esta información.');
         }
 
@@ -84,5 +73,63 @@ class MatriculaController extends Controller
             ->get();
 
         return view('matricula.mis_matriculas', compact('matriculas'));
+    }
+
+    // Nueva vista para que administradores/rectores gestionen matrículas pendientes
+    public function mostrarMatriculasPendientes()
+    {
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Debes iniciar sesión.');
+        }
+
+        $user = Auth::user();
+
+        if ($user->roles_id != 1 && $user->roles_id != 2) {
+            return redirect('/dashboard')->with('error', 'No tienes permisos para ver esta página.');
+        }
+
+        $matriculas = Matricula::where('estado', 'pendiente')->get();
+
+        return view('matricula.aceptar', compact('matriculas'));
+    }
+
+    // Aceptar o rechazar una matrícula
+    public function gestionarMatricula($id, $accion)
+    {
+        if (!Auth::check()) {
+            return redirect('/login')->with('error', 'Debes iniciar sesión.');
+        }
+
+        $user = Auth::user();
+
+        if ($user->roles_id != 1 && $user->roles_id != 2) {
+            return redirect('/dashboard')->with('error', 'No tienes permisos para realizar esta acción.');
+        }
+
+        $matricula = Matricula::find($id);
+        if (!$matricula) {
+            return redirect()->back()->with('error', 'Matrícula no encontrada.');
+        }
+
+        if ($accion == 'aceptar') {
+            $matricula->estado = 'aceptada';
+
+            // Crear usuario estudiante asociado
+            $estudiante = new User();
+            $estudiante->name = $matricula->nombre_estudiante;
+            $estudiante->email = $matricula->correo_contacto;
+            $estudiante->password = bcrypt('123456'); // Contraseña inicial
+            $estudiante->roles_id = 6;
+            $estudiante->save();
+        } elseif ($accion == 'rechazar') {
+            $matricula->estado = 'rechazada';
+        } else {
+            return redirect()->back()->with('error', 'Acción inválida.');
+        }
+
+        $matricula->save();
+
+        // Redirige a la página de gestión de matrículas
+        return redirect()->route('matricula.aceptar')->with('success', 'Matrícula gestionada correctamente.');
     }
 }

@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\MatriculaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CrearUsuario;
 use App\Http\Controllers\RolController;
@@ -125,6 +127,8 @@ Route::prefix('docentes')->name('docentes.')->middleware('auth')->group(function
 Route::get('/sin', [RolController::class, 'usuariosSinRol'])->name('sin');
 
 
+
+
 //rutas para estudiantes, solo visualizar notas
 Route::prefix('estudiantes')->name('estudiantes.')->middleware('auth')->group(function () {
     Route::get('/', function() {
@@ -138,3 +142,42 @@ Route::prefix('estudiantes')->name('estudiantes.')->middleware('auth')->group(fu
         return redirect()->route('notas.mostrar');
     })->name('index');
 });    
+
+Route::prefix('matricula')->name('matricula.')->middleware('auth')->group(function () {
+
+    // Solo los acudientes (roles_id = 7)
+    Route::get('/iniciar', function () {
+        $user = Auth::user();
+        if ($user->roles_id != 7) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+        return app(MatriculaController::class)->iniciarMatricula();
+    })->name('iniciar');
+
+    Route::post('/guardar', function () {
+        $user = Auth::user();
+        if ($user->roles_id != 7) {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
+        return app(MatriculaController::class)->guardarMatricula(request());
+    })->name('guardar');
+
+
+    // Solo los administradores (1) y rectores (2)
+    Route::get('/aceptar', function () {
+        $user = Auth::user();
+        if (!in_array($user->roles_id, [1, 2])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+        return app(MatriculaController::class)->mostrarMatriculasPendientes();
+    })->name('aceptar');
+
+    Route::get('/gestionar/{id}/{accion}', function ($id, $accion) {
+        $user = Auth::user();
+        if (!in_array($user->roles_id, [1, 2])) {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
+        return app(MatriculaController::class)->gestionarMatricula($id, $accion);
+    })->name('gestionar');
+});
+

@@ -130,12 +130,26 @@ if ($usuario && $usuario->roles_id) {
                     <span class="label">Roles y Permisos</span>
                 </a>
             @endif
-            @if($rol->tienePermiso('matricular_estudiantes'))
-                <a class="nav-link" href="#">
+            @php
+            $rolUsuario = auth()->user()->roles_id ?? null;
+            @endphp
+
+            {{-- Si es acudiente (rol_id = 7) --}}
+            @if($rolUsuario == 7)
+                <a class="nav-link" href="{{ route('matricula.iniciar') }}">
                     <i class="fas fa-user-check me-2"></i>
                     <span class="label">Matricular Estudiantes</span>
                 </a>
             @endif
+
+            {{-- Si es administrador (rol_id = 1) o rector (rol_id = 2) --}}
+            @if($rolUsuario == 1 || $rolUsuario == 2)
+                <a class="nav-link" href="{{ route('matricula.aceptar') }}">
+                    <i class="fas fa-user-cog me-2"></i>
+                    <span class="label">Gestionar Matrículas</span>
+                </a>
+            @endif
+
             @if($rol->tienePermiso('gestionar_materias'))
                 <a class="nav-link" href="#">
                     <i class="fas fa-book-open me-2"></i>
