@@ -11,7 +11,7 @@
 <div class="dashboard-container py-4">
     <!-- Sidebar -->
     <div class="col-md-3 col-lg-2 p-0">
-        @include('partials.sidebar') <!-- SIN CAMBIOS -->
+        @include('partials.sidebar') 
     </div>
 
     <div class="container-fluid">
