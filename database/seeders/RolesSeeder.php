@@ -24,6 +24,10 @@ class RolesSeeder extends Seeder
                     'gestionar_estudiantes',
                     'gestionar_roles',
                     'gestionar_permisos',
+                    // Notas
+                    'gestionar_notas','modificar_notas','ver_notas',
+                    // Orientación psicológica
+                    'gestionar_orientacion','ver_orientacion',
                     'configurar_sistema',
                     'ver_logs_sistema',
                     'hacer_respaldos',
@@ -46,6 +50,9 @@ class RolesSeeder extends Seeder
                     'matricular_estudiantes',
                     'asignar_materias',
                     'aprobar_notas',
+                    'gestionar_notas','modificar_notas','ver_notas',
+                    // Orientación
+                    'gestionar_orientacion','ver_orientacion',
                     'gestionar_horarios',
                     'gestionar_periodos',
                     'aprobar_sanciones',
@@ -89,6 +96,9 @@ class RolesSeeder extends Seeder
                     'gestionar_periodos',
                     'aprobar_notas',
                     'ver_notas',
+                    'gestionar_notas','modificar_notas',
+                    // Orientación (ver y apoyar seguimiento)
+                    'ver_orientacion','gestionar_orientacion',
                     'ver_historial_academico',
                     'ver_reportes_academicos',
                     'generar_reportes',
@@ -105,6 +115,9 @@ class RolesSeeder extends Seeder
                     'ver_estudiantes',
                     'registrar_notas',
                     'ver_notas',
+                    'modificar_notas',
+                    // Orientación (ver casos de sus estudiantes)
+                    'ver_orientacion',
                     'crear_actividades',
                     'ver_horarios',
                     'gestionar_asistencia',
@@ -123,6 +136,7 @@ class RolesSeeder extends Seeder
                 'descripcion' => 'Estudiante del colegio',
                 'permisos' => [
                     'ver_notas',
+                    'solicitar_orientacion','ver_orientacion',
                     'ver_horarios',
                     'ver_actividades',
                     'ver_comunicados',
@@ -137,6 +151,7 @@ class RolesSeeder extends Seeder
                 'descripcion' => 'Padre, madre o acudiente responsable del estudiante',
                 'permisos' => [
                     'ver_notas',
+                    'ver_orientacion',
                     'ver_horarios',
                     'ver_estudiantes',
                     'ver_historial_academico',
@@ -151,7 +166,18 @@ class RolesSeeder extends Seeder
                     'cambiar_contrasena',
                     'ver_notificaciones'
                 ]
-            ]
+            ],
+            [
+                'nombre' => 'Orientador',
+                'descripcion' => 'Profesional de orientación psicológica encargado de atender y dar seguimiento a casos',
+                'permisos' => [
+                    'ver_estudiantes',
+                    'gestionar_orientacion', // revisar, asignar, reprogramar, realizar, registrar, evaluar
+                    'ver_orientacion',
+                    'enviar_comunicados',
+                    'ver_notificaciones'
+                ]
+            ],
         ];
 
         foreach ($roles as $rol) {

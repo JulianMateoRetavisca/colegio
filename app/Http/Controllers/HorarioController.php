@@ -19,46 +19,63 @@ class HorarioController extends Controller
      */
     public function index()
     {
-        // Preparar datos para la vista: grupos, materias (si existen), docentes (rol Profesor), y horarios existentes.
-        // Grupos
-        $grupos = [];
-        if (class_exists(Grupo::class)) {
-            $grupos = Grupo::orderBy('nombre')->get();
-        }
+        $user = auth()->user();
+        $rol = $user && $user->roles_id ? RolesModel::find($user->roles_id) : null;
+        $nombreRol = $rol?->nombre ?? '';
+        $nombreRolLower = strtolower($nombreRol);
+        $esProfesor = $nombreRolLower === 'profesor';
+        $rolAlto = in_array($nombreRolLower, ['administrador','rector','coordinador']);
 
-        // Materias (opcional)
-        $materias = [];
-        if (class_exists(\App\Models\Materia::class)) {
-            $materias = \App\Models\Materia::orderBy('nombre')->get();
-        }
+        // Relacionales auxiliares
+        $grupos = class_exists(Grupo::class) ? Grupo::orderBy('nombre')->get() : collect();
+        $materias = class_exists(\App\Models\Materia::class) ? \App\Models\Materia::orderBy('nombre')->get() : collect();
 
-        // Docentes: buscar role id para 'Profesor'
+        // Listado de docentes para filtro (solo visible para roles altos)
         $profesorRoleId = RolesModel::where('nombre', 'Profesor')->value('id');
-        $docentes = [];
-        if ($profesorRoleId) {
-            $docentes = User::where('roles_id', $profesorRoleId)->orderBy('name')->get();
-        } else {
-            // Fallback: cualquiera con roles_id no nulo
-            $docentes = User::whereNotNull('roles_id')->orderBy('name')->get();
-        }
+        $docentes = $profesorRoleId ? User::where('roles_id', $profesorRoleId)->orderBy('name')->get() : collect();
 
-        // Horarios: preferir modelo Horario (si existe y tabla migrada), sino tabla directa o session
-        $horarios = [];
-        if (class_exists(Horario::class) && Schema::hasTable('horarios')) {
-            // eager load only the relations that exist to avoid errors when Materia model is missing
+        // Construcción de query de horarios si existe la tabla
+        $horarios = collect();
+        if (Schema::hasTable('horarios')) {
             $with = ['grupo', 'docente'];
-            if (class_exists(\App\Models\Materia::class)) {
-                $with[] = 'materia';
+            if (class_exists(\App\Models\Materia::class)) { $with[] = 'materia'; }
+            $query = Horario::with($with)->orderBy('dia')->orderBy('hora_inicio');
+
+            if ($esProfesor) {
+                $query->where('docente_id', $user->id);
+            } elseif ($rolAlto) {
+                // opcional filtro por docente via ?docente_id=
+                if (request()->filled('docente_id')) {
+                    $query->where('docente_id', request('docente_id'));
+                }
+            } else {
+                // Si no es profesor ni rol alto, restringir si no tiene permiso explicito
+                if (!$rol || !$rol->tienePermiso('gestionar_horarios')) {
+                    // Mostrar vacío para evitar fuga de información
+                    return view('horarios.index', [
+                        'grupos' => $grupos,
+                        'materias' => $materias,
+                        'docentes' => collect(),
+                        'horarios' => collect(),
+                        'esProfesor' => false,
+                        'rolAlto' => false,
+                    ])->with('error', 'No tienes autorización para ver horarios.');
+                }
             }
-            // eager load relations to avoid N+1
-            $horarios = Horario::with($with)->orderBy('created_at', 'desc')->get();
-        } elseif (Schema::hasTable('horarios')) {
-            $horarios = DB::table('horarios')->orderBy('created_at', 'desc')->get();
+            $horarios = $query->get();
         } else {
-            $horarios = session('horarios', []);
+            // Fallback session (temporal) si la migración aún no corre
+            $horarios = collect(session('horarios', []));
         }
 
-        return view('horarios.index', compact('grupos', 'materias', 'docentes', 'horarios'));
+        return view('horarios.index', [
+            'grupos' => $grupos,
+            'materias' => $materias,
+            'docentes' => $docentes,
+            'horarios' => $horarios,
+            'esProfesor' => $esProfesor,
+            'rolAlto' => $rolAlto,
+        ]);
     }
 
     /**

@@ -7,17 +7,8 @@
     $usuario = Auth::user();
 @endphp
 
-<div class="container-fluid">
-    <div class="row">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 p-0">
-            @include('partials.sidebar')
-        </div>
+<div class="container-fluid mt-3 px-4 py-4">
 
-        <!-- Main Content -->
-        <div class="col-md-9 col-lg-10 px-4 py-4">
-
-            <!-- Hero / Header (purple subtle gradient like template) -->
             <div class="mb-4 rounded-4 p-4" style="background: linear-gradient(180deg, #f1eafe 0%, #efe7ff 100%);">
                 <div class="d-flex align-items-center">
                     <div class="me-3">
@@ -42,11 +33,36 @@
                 @endif
             </div>
 
+            <!-- Filtros (solo roles altos) -->
+            @if($rolAlto)
+            <div class="mx-auto mb-3" style="max-width:1100px;">
+                <form method="GET" action="{{ route('horarios.index') }}" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label mb-1">Filtrar por docente</label>
+                        <select name="docente_id" class="form-select form-select-sm">
+                            <option value="">-- Todos --</option>
+                            @foreach($docentes as $d)
+                                <option value="{{ $d->id }}" @selected(request('docente_id') == $d->id)>{{ $d->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-sm btn-primary w-100">Aplicar</button>
+                    </div>
+                    @if(request()->filled('docente_id'))
+                        <div class="col-md-2">
+                            <a href="{{ route('horarios.index') }}" class="btn btn-sm btn-secondary w-100">Quitar filtro</a>
+                        </div>
+                    @endif
+                </form>
+            </div>
+            @endif
+
             <!-- Tabla de horarios existentes -->
-            <div class="mx-auto mt-3" style="max-width:1100px;">
+            <div class="mx-auto" style="max-width:1100px;">
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body p-3">
-                        <h5 class="mb-3">Horarios registrados</h5>
+                        <h5 class="mb-3">Horarios registrados @if($esProfesor) <small class="text-muted">(tus horarios)</small>@elseif($rolAlto && request('docente_id')) <small class="text-muted">(filtrado)</small>@endif</h5>
                         <div class="table-responsive">
                             <table class="table table-sm align-middle">
                                 <thead class="table-light">
@@ -98,8 +114,14 @@
                 </div>
             </div>
 
-            <!-- Centered card with form (matching the create docente template) -->
-            <div class="mx-auto" style="max-width:1100px;">
+            @if(!$esProfesor && !$rolAlto)
+                <div class="alert alert-info mt-4" style="max-width:1100px;">
+                    No tienes permisos para crear horarios, sólo visualizar los asignados.
+                </div>
+            @endif
+
+            @if($rolAlto)
+            <div class="mx-auto mt-4" style="max-width:1100px;">
                 <div class="card border-0 shadow-sm rounded-4">
                     <div class="card-body p-4">
                         <form method="POST" action="{{ route('horarios.store', []) }}">
@@ -127,7 +149,7 @@
 
                                 <div class="col-md-6">
                                     <label class="form-label">Docente</label>
-                                    <select name="docente_id" class="form-select">
+                                    <select name="docente_id" class="form-select" @if($esProfesor) disabled @endif>
                                         <option value="">-- Seleccione un docente --</option>
                                         @foreach($docentes as $doc)
                                             <option value="{{ $doc->id }}">{{ $doc->name }} &lt;{{ $doc->email }}&gt;</option>
@@ -162,7 +184,6 @@
                                 </div>
 
                                 <div class="col-12 d-flex justify-content-end">
-                                    <a href="{{ url()->previous() }}" class="btn btn-secondary me-2">← Cancelar</a>
                                     <button type="submit" class="btn btn-primary">Guardar</button>
                                 </div>
                             </div>
@@ -170,9 +191,9 @@
                     </div>
                 </div>
             </div>
+            @endif
 
         </div>
-    </div>
 </div>
 
 @endsection
