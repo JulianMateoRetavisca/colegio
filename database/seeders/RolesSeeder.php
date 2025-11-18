@@ -24,6 +24,8 @@ class RolesSeeder extends Seeder
                     'gestionar_estudiantes',
                     'gestionar_roles',
                     'gestionar_permisos',
+                    // Disciplina
+                    'gestionar_disciplina','ver_disciplina',
                     // Notas
                     'gestionar_notas','modificar_notas','ver_notas',
                     // Orientación psicológica
@@ -51,6 +53,8 @@ class RolesSeeder extends Seeder
                     'asignar_materias',
                     'aprobar_notas',
                     'gestionar_notas','modificar_notas','ver_notas',
+                    // Disciplina
+                    'gestionar_disciplina','ver_disciplina',
                     // Orientación
                     'gestionar_orientacion','ver_orientacion',
                     'gestionar_horarios',
@@ -75,6 +79,7 @@ class RolesSeeder extends Seeder
                 'permisos' => [
                     'ver_estudiantes',
                     'gestionar_disciplina',
+                    'ver_disciplina',
                     'ver_reportes_disciplinarios',
                     'aprobar_sanciones',
                     'justificar_inasistencias',
@@ -97,6 +102,8 @@ class RolesSeeder extends Seeder
                     'aprobar_notas',
                     'ver_notas',
                     'gestionar_notas','modificar_notas',
+                    // Disciplina (académico también gestiona)
+                    'gestionar_disciplina','ver_disciplina',
                     // Orientación (ver y apoyar seguimiento)
                     'ver_orientacion','gestionar_orientacion',
                     'ver_historial_academico',
@@ -116,6 +123,8 @@ class RolesSeeder extends Seeder
                     'registrar_notas',
                     'ver_notas',
                     'modificar_notas',
+                    // Disciplina (docente reporta y ve propios)
+                    'reportar_incidente','ver_disciplina',
                     // Orientación (ver casos de sus estudiantes)
                     'ver_orientacion',
                     'crear_actividades',
@@ -137,6 +146,8 @@ class RolesSeeder extends Seeder
                 'permisos' => [
                     'ver_notas',
                     'solicitar_orientacion','ver_orientacion',
+                    // Disciplina (ver propios)
+                    'ver_disciplina',
                     'ver_horarios',
                     'ver_actividades',
                     'ver_comunicados',
@@ -152,6 +163,8 @@ class RolesSeeder extends Seeder
                 'permisos' => [
                     'ver_notas',
                     'ver_orientacion',
+                    // Disciplina (acudiente ve y apela)
+                    'ver_disciplina','apelar_sancion',
                     'ver_horarios',
                     'ver_estudiantes',
                     'ver_historial_academico',
@@ -174,6 +187,8 @@ class RolesSeeder extends Seeder
                     'ver_estudiantes',
                     'gestionar_orientacion', // revisar, asignar, reprogramar, realizar, registrar, evaluar
                     'ver_orientacion',
+                    // Disciplina (orientador solo visualiza si se desea)
+                    'ver_disciplina',
                     'enviar_comunicados',
                     'ver_notificaciones'
                 ]

@@ -1,153 +1,94 @@
 @extends('layouts.app')
 
 @section('content')
-@php
-    $usuario = Auth::user();
-    $rol = App\Models\RolesModel::find($usuario->roles_id);
-@endphp
-
-<div class="container-fluid min-vh-100" style="background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 50%, #faf5ff 100%);">
-    <div class="row g-0">
-        <!-- Sidebar -->
-        <div class="col-md-3 col-lg-2 p-0 shadow-sm" style="background-color: #1f2937;">
-            @include('partials.sidebar')
+<section class="page-section">
+    <div class="page-header">
+        <div class="page-title">
+            <h1 class="h4 mb-0"><i class="fas fa-user-shield me-2 text-primary"></i>Crear nuevo rol</h1>
+            <p class="subtitle">Define los permisos y características del nuevo rol</p>
         </div>
-
-        <!-- Main Content -->
-        <div class="col-md-9 col-lg-10 px-5 py-4">
-            <div class="main-content bg-white bg-opacity-90 p-4 rounded-4 shadow-lg border-0">
-
-                <div class="mb-4 border-bottom pb-2">
-                    <h1 class="fw-bold" style="color: #4f46e5;">
-                        <i class="fas fa-user-shield me-2 text-indigo-600"></i> Crear nuevo rol
-                    </h1>
-                    <p class="text-secondary mb-0">Define los permisos y características del nuevo rol.</p>
-                </div>
-
-                @if($errors->any())
-                    <div class="alert alert-danger shadow-sm rounded-4 border-0">
-                        <ul class="mb-0 ps-3">
-                            @foreach($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
-                <form action="{{ route('roles.guardar') }}" method="POST" class="p-4 rounded-4 shadow-sm border-0"
-                      style="background: linear-gradient(145deg, #ffffff, #f5f3ff);">
-                    @csrf
-
-                    <div class="mb-4">
-                        <label for="nombre" class="form-label fw-semibold text-indigo-700">Nombre del rol</label>
-                        <input type="text" name="nombre" id="nombre"
-                               class="form-control shadow-sm rounded-3 border-0"
-                               style="background-color: #eef2ff;"
-                               required value="{{ old('nombre') }}">
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="descripcion" class="form-label fw-semibold text-indigo-700">Descripción</label>
-                        <textarea name="descripcion" id="descripcion"
-                                  class="form-control shadow-sm rounded-3 border-0"
-                                  style="background-color: #eef2ff;" rows="2"
-                                  required>{{ old('descripcion') }}</textarea>
-                    </div>
-
-                    <div class="mb-4">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-                            <h5 class="fw-bold text-indigo-800 mb-0">
-                                <i class="fas fa-key me-2 text-indigo-500"></i> Permisos por módulo
-                            </h5>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="btn btn-sm rounded-3 shadow-sm text-white" id="marcar_todo"
-                                        style="background: linear-gradient(90deg, #6366f1, #8b5cf6); border: none;">
-                                    <i class="fas fa-check-double me-1"></i> Marcar todo
-                                </button>
-                                <button type="button" class="btn btn-sm rounded-3 shadow-sm text-white" id="desmarcar_todo"
-                                        style="background: linear-gradient(90deg, #94a3b8, #64748b); border: none;">
-                                    <i class="fas fa-times me-1"></i> Desmarcar todo
-                                </button>
-                                <button type="button" class="btn btn-sm rounded-3 shadow-sm text-white" id="expandir_todo"
-                                        style="background: linear-gradient(90deg, #60a5fa, #818cf8); border: none;">
-                                    <i class="fas fa-expand me-1"></i> Expandir
-                                </button>
-                                <button type="button" class="btn btn-sm rounded-3 shadow-sm text-white" id="contraer_todo"
-                                        style="background: linear-gradient(90deg, #4b5563, #1f2937); border: none;">
-                                    <i class="fas fa-compress me-1"></i> Contraer
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="row g-4">
-                            @foreach($gruposPermisos as $modulo => $permisos)
-                                <div class="col-lg-6">
-                                    <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden"
-                                         style="background-color: #fafafa;">
-                                        <div class="card-header d-flex justify-content-between align-items-center text-white"
-                                             style="background: linear-gradient(90deg, #6366f1, #8b5cf6); border: none;">
-                                            <span class="fw-semibold">
-                                                {{ $modulo }}
-                                                <small class="ms-2 text-light conteo-modulo"
-                                                       data-modulo="{{ Str::slug($modulo) }}"
-                                                       data-total="{{ count($permisos) }}">
-                                                    (<span class="seleccionados">0</span>/{{ count($permisos) }})
-                                                </small>
-                                            </span>
-                                            <div class="form-check m-0">
-                                                <input class="form-check-input marcar-modulo" type="checkbox"
-                                                       id="marcar_modulo_{{ Str::slug($modulo) }}"
-                                                       data-modulo="{{ Str::slug($modulo) }}">
-                                                <label class="form-check-label text-white small"
-                                                       for="marcar_modulo_{{ Str::slug($modulo) }}">Seleccionar todo</label>
-                                            </div>
-                                        </div>
-
-                                        <div class="card-body contenedor-permisos p-3"
-                                             style="background-color: #f9f9ff;"
-                                             data-modulo="{{ Str::slug($modulo) }}">
-                                            <input type="text" class="form-control form-control-sm mb-3 rounded-3 shadow-sm buscador-modulo border-0"
-                                                   placeholder="Buscar permisos..." data-modulo="{{ Str::slug($modulo) }}"
-                                                   style="background-color: #eef2ff;">
-                                            <div class="row">
-                                                @foreach($permisos as $permiso => $desc)
-                                                    <div class="col-12 permiso-row"
-                                                         data-etiqueta="{{ Str::lower($desc) }}"
-                                                         data-modulo="{{ Str::slug($modulo) }}">
-                                                        <div class="form-check mb-2">
-                                                            <input class="form-check-input permiso-item permiso-{{ Str::slug($modulo) }}"
-                                                                   type="checkbox" name="permisos[]"
-                                                                   value="{{ $permiso }}"
-                                                                   id="permiso_{{ $permiso }}">
-                                                            <label class="form-check-label text-secondary"
-                                                                   for="permiso_{{ $permiso }}">
-                                                                {{ $desc }}
-                                                            </label>
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <div class="mt-4 d-flex justify-content-end gap-2">
-                        <button type="submit" class="btn px-4 rounded-3 shadow-sm text-white"
-                                style="background: linear-gradient(90deg, #4f46e5, #7c3aed); border: none;">
-                            <i class="fas fa-save me-2"></i> Guardar rol
-                        </button>
-                        <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary px-4 rounded-3 shadow-sm">
-                            <i class="fas fa-arrow-left me-2"></i> Cancelar
-                        </a>
-                    </div>
-                </form>
-            </div>
+        <div class="action-bar">
+            <a href="{{ route('roles.index') }}" class="btn-pro outline"><i class="fas fa-arrow-left me-1"></i>Volver</a>
         </div>
     </div>
-</div>
+
+    @if($errors->any())
+        <div class="alert alert-danger shadow-sm border-0 rounded-3">
+            <ul class="mb-0 ps-3">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <x-form-card :title="'Datos del rol'">
+        <form action="{{ route('roles.guardar') }}" method="POST">
+            @csrf
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="nombre" class="form-label">Nombre del rol</label>
+                    <input type="text" name="nombre" id="nombre" class="form-control" required value="{{ old('nombre') }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="descripcion" class="form-label">Descripción</label>
+                    <input type="text" name="descripcion" id="descripcion" class="form-control" required value="{{ old('descripcion') }}">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0"><i class="fas fa-key me-2 text-primary"></i>Permisos por módulo</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn-pro xs primary" id="marcar_todo"><i class="fas fa-check-double"></i> Marcar todo</button>
+                        <button type="button" class="btn-pro xs outline" id="desmarcar_todo"><i class="fas fa-times"></i> Desmarcar</button>
+                        <button type="button" class="btn-pro xs info" id="expandir_todo"><i class="fas fa-expand"></i> Expandir</button>
+                        <button type="button" class="btn-pro xs dark" id="contraer_todo"><i class="fas fa-compress"></i> Contraer</button>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    @foreach($gruposPermisos as $modulo => $permisos)
+                        <div class="col-lg-6">
+                            <div class="pro-card h-100">
+                                <div class="pro-card-header d-flex justify-content-between align-items-center">
+                                    <span class="fw-semibold">
+                                        {{ $modulo }}
+                                        <small class="ms-2 text-muted conteo-modulo" data-modulo="{{ Str::slug($modulo) }}" data-total="{{ count($permisos) }}">
+                                            (<span class="seleccionados">0</span>/{{ count($permisos) }})
+                                        </small>
+                                    </span>
+                                    <div class="form-check m-0">
+                                        <input class="form-check-input marcar-modulo" type="checkbox" id="marcar_modulo_{{ Str::slug($modulo) }}" data-modulo="{{ Str::slug($modulo) }}">
+                                        <label class="form-check-label small" for="marcar_modulo_{{ Str::slug($modulo) }}">Seleccionar todo</label>
+                                    </div>
+                                </div>
+                                <div class="pro-card-body contenedor-permisos" data-modulo="{{ Str::slug($modulo) }}">
+                                    <input type="text" class="form-control form-control-sm mb-3 buscador-modulo" placeholder="Buscar permisos..." data-modulo="{{ Str::slug($modulo) }}">
+                                    <div class="row">
+                                        @foreach($permisos as $permiso => $desc)
+                                            <div class="col-12 permiso-row" data-etiqueta="{{ Str::lower($desc) }}" data-modulo="{{ Str::slug($modulo) }}">
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input permiso-item permiso-{{ Str::slug($modulo) }}" type="checkbox" name="permisos[]" value="{{ $permiso }}" id="permiso_{{ $permiso }}">
+                                                    <label class="form-check-label" for="permiso_{{ $permiso }}">{{ $desc }}</label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="pro-card-footer d-flex justify-content-end gap-2 mt-3">
+                <a href="{{ route('roles.index') }}" class="btn-pro outline"><i class="fas fa-arrow-left me-1"></i>Cancelar</a>
+                <button type="submit" class="btn-pro success"><i class="fas fa-save me-1"></i>Guardar rol</button>
+            </div>
+        </form>
+    </x-form-card>
+</section>
 @endsection
 
 @push('scripts')

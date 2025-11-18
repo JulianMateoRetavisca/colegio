@@ -3,14 +3,22 @@
 @section('title', 'Notas de Estudiantes')
 
 @section('content')
-<div class="container py-4">
-    <h3>Notas de Estudiantes</h3>
+<section class="page-section">
+    <div class="page-header">
+        <div class="page-title">
+            <h1 class="h4 mb-0"><i class="fas fa-list-alt me-2 text-primary"></i>Notas de Estudiantes</h1>
+            <p class="subtitle">Gestión de calificaciones y estados</p>
+        </div>
+        <div class="action-bar">
+            <a href="{{ route('notas.guardar') }}" class="btn-pro primary"><i class="fas fa-plus me-1"></i>Nueva Nota</a>
+        </div>
+    </div>
 
     <div id="controls" class="my-3">
         <!-- El select se renderiza por JS cuando el usuario tiene permiso -->
         <div id="studentSelectWrapper"></div>
         @if(isset($isAdmin) && $isAdmin)
-            <form method="GET" action="{{ route('notas.mostrar') }}" class="d-flex gap-2 align-items-end mb-3">
+            <form method="GET" action="{{ route('notas.mostrar') }}" class="row g-2 align-items-end mb-3">
                 <div>
                     <label class="form-label">Grupo</label>
                     <select name="grupo" class="form-select">
@@ -29,8 +37,8 @@
                         @endforeach
                     </select>
                 </div>
-                <div>
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                <div class="col-auto">
+                    <button type="submit" class="btn-pro primary">Filtrar</button>
                 </div>
             </form>
             <script>window.serverControls = true;</script>
@@ -38,7 +46,7 @@
         @if(isset($isStudent) && $isStudent)
             <div class="mb-2">
                 <label class="form-label">Filtrar por materia</label>
-                <select id="studentMateriaFilter" class="form-select w-25">
+                <select id="studentMateriaFilter" class="form-select form-select-sm" style="max-width:260px;">
                     <option value="">Todas</option>
                     @foreach($materias as $mid => $mname)
                         <option value="{{ $mid }}">{{ $mname }}</option>
@@ -51,16 +59,16 @@
             background:#f8f9fa;padding:8px;border-radius:4px;display:none;">Debug:</div>
     </div>
 
-    <div id="notasTableWrapper">
-        <table class="table table-striped" id="notasTable">
+    <div id="notasTableWrapper" class="pro-card">
+        <div class="pro-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h2 class="h6 mb-0">Listado de Notas</h2>
+            <small class="text-muted">Estados: Borrador → Publicada → Revisada → Bloqueada</small>
+        </div>
+        <div class="pro-table-wrapper">
+        <table class="pro-table" id="notasTable">
             <thead>
                 <tr>
-                    <th>Materia</th>
-                    <th>Periodo</th>
-                    <th>Nota</th>
-                    <th>Estado</th>
-                    <th>Estudiante</th>
-                    <th>Acciones</th>
+                    <th>Materia</th><th>Periodo</th><th>Nota</th><th>Estado</th><th>Estudiante</th><th style="width:240px">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -82,21 +90,23 @@
                             </td>
                             <td>{{ $n->estudiante->name ?? '' }}</td>
                             <td>
+                                <div class="d-flex flex-wrap gap-1">
                                 @if(Auth::check() && Auth::user()->tienePermiso('modificar_notas'))
-                                    <button class="btn btn-sm btn-primary editNotaBtn" data-id="{{ $n->id }}" data-materia="{{ $n->materia_id }}" data-periodo="{{ $n->periodo }}" data-nota="{{ $n->nota }}">Editar</button>
+                                    <button class="btn-pro xs outline editNotaBtn" data-id="{{ $n->id }}" data-materia="{{ $n->materia_id }}" data-periodo="{{ $n->periodo }}" data-nota="{{ $n->nota }}" title="Editar"><i class="fas fa-edit"></i></button>
                                 @endif
                                 @if(Auth::check() && Auth::user()->tienePermiso('gestionar_notas'))
                                     @php($estado = $n->estado ?? 'borrador')
                                     @if($estado === 'borrador')
-                                        <form method="POST" action="{{ route('notas.publicar',$n->id) }}" class="d-inline">@csrf <button class="btn btn-sm btn-info">Publicar</button></form>
+                                        <form method="POST" action="{{ route('notas.publicar',$n->id) }}" class="d-inline">@csrf <button class="btn-pro xs info" title="Publicar"><i class="fas fa-upload"></i></button></form>
                                     @elseif($estado === 'publicada')
-                                        <form method="POST" action="{{ route('notas.revisar',$n->id) }}" class="d-inline">@csrf <button class="btn btn-sm btn-success">Revisar</button></form>
-                                        <form method="POST" action="{{ route('notas.revertir',$n->id) }}" class="d-inline">@csrf <button class="btn btn-sm btn-warning">Revertir</button></form>
+                                        <form method="POST" action="{{ route('notas.revisar',$n->id) }}" class="d-inline">@csrf <button class="btn-pro xs success" title="Revisar"><i class="fas fa-check"></i></button></form>
+                                        <form method="POST" action="{{ route('notas.revertir',$n->id) }}" class="d-inline">@csrf <button class="btn-pro xs warning" title="Revertir"><i class="fas fa-undo"></i></button></form>
                                     @elseif($estado === 'revisada')
-                                        <form method="POST" action="{{ route('notas.revertir',$n->id) }}" class="d-inline">@csrf <button class="btn btn-sm btn-warning">Revertir</button></form>
-                                        <form method="POST" action="{{ route('notas.bloquear',$n->id) }}" class="d-inline" onsubmit="return confirm('¿Bloquear nota definitivamente?');">@csrf <button class="btn btn-sm btn-dark">Bloquear</button></form>
+                                        <form method="POST" action="{{ route('notas.revertir',$n->id) }}" class="d-inline">@csrf <button class="btn-pro xs warning" title="Revertir"><i class="fas fa-undo"></i></button></form>
+                                        <form method="POST" action="{{ route('notas.bloquear',$n->id) }}" class="d-inline" onsubmit="return confirm('¿Bloquear nota definitivamente?');">@csrf <button class="btn-pro xs dark" title="Bloquear"><i class="fas fa-lock"></i></button></form>
                                     @endif
                                 @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
@@ -106,7 +116,8 @@
             </tbody>
         </table>
     </div>
-</div>
+    </div>
+</section>
 
 <script>
     // CSRF token for AJAX

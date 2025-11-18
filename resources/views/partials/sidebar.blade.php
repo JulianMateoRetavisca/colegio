@@ -5,286 +5,257 @@ $rol = null;
 if ($usuario && $usuario->roles_id) {
     $rol = RolesModel::find($usuario->roles_id);
 }
+$active = function ($patterns) {
+    foreach ((array)$patterns as $p) {
+        if (request()->routeIs($p) || request()->is($p)) return ' active';
+    }
+    return '';
+};
 @endphp
 
 <style>
-.sidebar {
-    background: #1f2937;
-    color: #fff;
-    height: 100vh;
-    overflow-y: auto;
-    transition: transform 0.2s ease;
-    width: 220px;
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 9998;
-    transform: translateX(0);
-    will-change: transform;
+/* =============================================== */
+/* Corrección: navbar height como variable global  */
+/* =============================================== */
+:root {
+  --navbar-height: 56px;
 }
-.sidebar.collapsed {
-    transform: translateX(-100%);
-    visibility: hidden;
-    transition: transform 0.2s ease, visibility 0s linear 0.2s;
+
+/* Contenedor fijo para ubicar la tarjeta como sidebar */
+.sidebar { /* conservado por compatibilidad */
+  position: fixed;
+  left: 0;
+  top: var(--navbar-height);
+  width: 260px;
+  height: calc(100vh - var(--navbar-height));
+  padding: 0;
+  background: transparent;
+  z-index: 9998;
 }
-.sidebar .nav-link {
-    color: #e5e7eb;
+.sidebar-fixed {
+  position: fixed;
+  left: 0;
+  top: var(--navbar-height); /* justo debajo de la navbar */
+  width: 260px;
+  height: calc(100vh - var(--navbar-height));
+  background: transparent;
+  overflow: hidden; /* el card maneja el overflow */
+  z-index: 9998;
 }
-.sidebar .nav-link .label {
-    transition: opacity 0.15s ease;
+
+/* Header y acciones dentro de la tarjeta */
+.nav-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
-.sidebar.collapsed .nav-link .label {
-    opacity: 0;
-    width: 0;
-    display: none;
+.nav-actions { display:flex; gap:6px; }
+.nav-btn {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
 }
-.sidebar.collapsed nav, .sidebar.collapsed .sidebar-header {
-    display: none;
+.nav-btn:hover { background: rgba(255,255,255,0.1); }
+
+/* Estilos del componente tipo tarjeta (proporcionados) */
+.card.nav-card {
+  width: 100%;
+  height: 100%;
+  border-radius: 0px;
+  background: rgb(27, 26, 26);
+  color: white;
+  font-weight: 600;
+  font-size: 1.2em;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: -5px 5px 1px 0px #004d92;
+  overflow: hidden;
 }
-.sidebar.collapsed .sidebar-title {
-    display: none;
+.card.nav-card > span {
+  display: block;
+  margin-bottom: 8px;
 }
-.sidebar .sidebar-header {
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
+.card__container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-.sidebar-toggle-btn {
-    background: transparent;
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    z-index: 20;
+.element {
+  color: grey;
+  font-size: .8em;
+  padding: 6px 15px;
+  border-left: 2px solid grey;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  border-radius: 6px 0 0 6px;
 }
-.sidebar-reset-btn {
-    background: transparent;
-    border: none;
-    color: #fff;
-    cursor: pointer;
-    font-size: 0.95rem;
-    padding-left: 6px;
+.element.active {
+  background-color: #004d92;
+  border-left: 2px solid #8cb4ff;
+  color: azure;
 }
-.sidebar .me-2 { width: 20px; }
+.element:hover:not(.active) {
+  color: #3775bb;
+}
+
+/* Mantener fija en móviles también */
+@media (max-width: 992px) {
+  .sidebar,
+  .sidebar-fixed { 
+    position: fixed; 
+    left: 0; 
+    top: var(--navbar-height); 
+    width: 260px; 
+    height: calc(100vh - var(--navbar-height)); 
+  }
+  .card.nav-card { width: 100%; height: 100%; border-radius: 0; }
+}
+
+/* Nota: padding/espaciado del contenido se maneja en el layout (.app-main) */
+
+/* Estado colapsado: oculta la sidebar fuera de pantalla y muestra el handle */
+body.sidebar-collapsed .sidebar-fixed { transform: translateX(-100%); }
 .sidebar-handle {
-    position: fixed;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
-    background: #111827;
-    color: #fff;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    border: none;
-    cursor: pointer;
+  display: none;
+  position: fixed;
+  left: 10px;
+  top: calc(var(--navbar-height) + 10px);
+  z-index: 10000;
+  background: #1b1a1a;
+  color: #fff;
+  border: 1px solid #004d92;
+  box-shadow: -3px 3px 1px 0px #004d92;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
 }
-.sidebar-handle:focus { outline: 2px solid rgba(255,255,255,0.15); }
+body.sidebar-collapsed .sidebar-handle { display: inline-flex; align-items:center; gap:6px; }
 </style>
 
-<div class="sidebar" id="appSidebar" role="navigation" aria-label="Menú principal">
-    <div class="p-3 sidebar-header" style="position:relative;">
-        <h6 class="text-white-50 text-uppercase mb-0">
-            <span class="sidebar-title">Menú Principal</span>
-        </h6>
-        <div style="position:absolute; right:8px; top:8px; display:flex; gap:6px; align-items:center;">
-            <button id="sidebarReset" class="sidebar-reset-btn" aria-label="Restablecer menú" title="Restablecer menú">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-            <button id="sidebarToggle" class="sidebar-toggle-btn" aria-label="Alternar menú" title="Alternar menú">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
+<div class="sidebar-fixed">
+  <div class="card nav-card">
+    <div class="nav-card-header">
+      <span>Menú</span>
+      <div class="nav-actions">
+        <button id="sidebarCollapseBtn" class="nav-btn" title="Colapsar sidebar" aria-label="Colapsar sidebar">
+          <i class="fas fa-angle-double-left"></i>
+        </button>
+      </div>
     </div>
-    <nav class="nav flex-column px-3" id="sidebarNav">
-        <a class="nav-link" href="{{ route('dashboard') }}">
-            <i class="fas fa-tachometer-alt me-2"></i>
-            <span class="label">Dashboard</span>
-        </a>
-        @if($rol)
-            @if($rol->tienePermiso('gestionar_usuarios'))
-                <a class="nav-link" href="{{ route('usuarios.index') }}">
-                    <i class="fas fa-users-cog me-2"></i>
-                    <span class="label">Gestión de Usuarios</span>
-                </a>
-            @endif
-            @if($rol->tienePermiso('gestionar_estudiantes'))
-                <a class="nav-link" href="{{route('estudiantes.mostrar')}}">
-                    <i class="fas fa-user-graduate me-2"></i>
-                    <span class="label">Estudiantes</span>
-                </a>
-            @endif
-            @if($rol->tienePermiso('gestionar_docentes'))
-                <a class="nav-link"  href="{{ route('docentes.index') }}">
-                    <i class="fas fa-chalkboard-teacher me-2"></i>
-                    <span class="label">Docentes</span>
-                </a>
-            @endif
-            @if($rol->tienePermiso('gestionar_roles'))
-                <a class="nav-link" href="{{ route('roles.index') }}">
-                    <i class="fas fa-user-shield me-2"></i>
-                    <span class="label">Roles y Permisos</span>
-                </a>
-            @endif
-            @php
-            $rolUsuario = auth()->user()->roles_id ?? null;
-            @endphp
-
-            {{-- Si es acudiente (rol_id = 7) --}}
-            @if($rolUsuario == 7)
-                <a class="nav-link" href="{{ route('matricula.iniciar') }}">
-                    <i class="fas fa-user-check me-2"></i>
-                    <span class="label">Matricular Estudiantes</span>
-                </a>
-            @endif
-
-            {{-- Si es administrador (rol_id = 1) o rector (rol_id = 2) --}}
-            @if($rolUsuario == 1 || $rolUsuario == 2)
-                <a class="nav-link" href="{{ route('matricula.aceptar') }}">
-                    <i class="fas fa-user-cog me-2"></i>
-                    <span class="label">Gestionar Matrículas</span>
-                </a>
-            @endif
-
-            @if($rol->tienePermiso('gestionar_materias'))
-                <a class="nav-link" href="{{ route('materias.index') }}">
-                    <i class="fas fa-book-open me-2"></i>
-                    <span class="label">Materias</span>
-                </a>
-            @endif
-            @if($rol->tienePermiso('gestionar_cursos'))
-                <a class="nav-link" href="{{ route('grupos.index') }}">
-                    <i class="fas fa-layer-group me-2"></i>
-                    <span class="label">Cursos</span>
-                </a>
-            @endif
-            @php
-                $nombreRolLower = $rol && isset($rol->nombre) ? strtolower($rol->nombre) : '';
-                $rolAlto = in_array($nombreRolLower, ['administrador','rector','coordinador']);
-                $esProfesor = $nombreRolLower === 'profesor';
-            @endphp
-            @if($rol->tienePermiso('gestionar_horarios') || $esProfesor || $rolAlto)
-                <a class="nav-link" href="{{ route('horarios.index') }}">
-                    <i class="fas fa-calendar-alt me-2"></i>
-                    <span class="label">Horarios</span>
-                </a>
-            @endif
-            @if($rol->tienePermiso('gestionar_disciplina'))
-                <a class="nav-link" href="#">
-                    <i class="fas fa-gavel me-2"></i>
-                    <span class="label">Disciplina</span>
-                </a>
-            @endif
-            @if($rol->tienePermiso('gestionar_orientacion') || $rol->tienePermiso('ver_orientacion') || $rol->tienePermiso('solicitar_orientacion'))
-                @php
-                    $nombreRolLower = strtolower($rol->nombre ?? '');
-                    $rutaOrientacion = route('orientacion.citas.vista');
-                    if(in_array($nombreRolLower,['admin','administrador','rector','coordinadoracademico','coordinadordisciplina'])){
-                        $rutaOrientacion = route('orientacion.citas.admin');
-                    }
-                @endphp
-                <a class="nav-link" href="{{ $rutaOrientacion }}">
-                    <i class="fas fa-comments me-2"></i>
-                    <span class="label">Orientación</span>
-                </a>
-            @endif
-            @if($rol->tienePermiso('gestionar_notas') || $rol->tienePermiso('registrar_notas') || $rol->tienePermiso('ver_notas'))
-                <a class="nav-link" href="{{ route('notas.mostrar') }}">
-                    <i class="fas fa-money-bill-wave me-2"></i>
-                    <span class="label">Notas</span>
-                </a>
-            @endif
-            @php
-                $esProfesor = $rol && (isset($rol->nombre) ? strtolower($rol->nombre) === 'profesor' : false);
-            @endphp
-            @if($esProfesor || $rol->tienePermiso('gestionar_notas'))
-                <a class="nav-link" href="{{ route('docentes.grupos') }}">
-                    <i class="fas fa-clipboard-list me-2"></i>
-                    <span class="label">Grupos & Notas</span>
-                </a>
-            @endif
-            @if($rol->tienePermiso('configurar_sistema'))
-                <a class="nav-link" href="#">
-                    <i class="fas fa-cog me-2"></i>
-                    <span class="label">Configuración</span>
-                </a>
-            @endif
+    <div class="card__container">
+      <a class="element{{ $active('dashboard') }}" href="{{ route('dashboard') }}">Dashboard</a>
+      @if($rol)
+        @if($rol->tienePermiso('gestionar_usuarios'))
+          <a class="element{{ $active('usuarios.*') }}" href="{{ route('usuarios.index') }}">Gestión de Usuarios</a>
         @endif
-    </nav>
+        @if($rol->tienePermiso('gestionar_estudiantes'))
+          <a class="element{{ $active('estudiantes.*') }}" href="{{ route('estudiantes.mostrar') }}">Estudiantes</a>
+        @endif
+        @if($rol->tienePermiso('gestionar_docentes'))
+          <a class="element{{ $active('docentes.*') }}" href="{{ route('docentes.index') }}">Docentes</a>
+        @endif
+        @if($rol->tienePermiso('gestionar_roles'))
+          <a class="element{{ $active('roles.*') }}" href="{{ route('roles.index') }}">Roles y Permisos</a>
+        @endif
+
+        @php $rolUsuario = auth()->user()->roles_id ?? null; @endphp
+        @if($rolUsuario == 7)
+          <a class="element{{ $active('matricula.iniciar') }}" href="{{ route('matricula.iniciar') }}">Matricular Estudiantes</a>
+        @endif
+        @if($rolUsuario == 1 || $rolUsuario == 2)
+          <a class="element{{ $active('matricula.aceptar') }}" href="{{ route('matricula.aceptar') }}">Gestionar Matrículas</a>
+        @endif
+
+        @if($rol->tienePermiso('gestionar_materias'))
+          <a class="element{{ $active('materias.*') }}" href="{{ route('materias.index') }}">Materias</a>
+        @endif
+        @if($rol->tienePermiso('gestionar_cursos'))
+          <a class="element{{ $active('grupos.*') }}" href="{{ route('grupos.index') }}">Cursos</a>
+        @endif
+
+        @php
+          $nombreRolLower = $rol && isset($rol->nombre) ? strtolower($rol->nombre) : '';
+          $rolAlto = in_array($nombreRolLower, ['administrador','rector','coordinador']);
+          $esProfesor = $nombreRolLower === 'profesor';
+        @endphp
+        @if($rol->tienePermiso('gestionar_horarios') || $esProfesor || $rolAlto)
+          <a class="element{{ $active('horarios.*') }}" href="{{ route('horarios.index') }}">Horarios</a>
+        @endif
+
+        @if($rol->tienePermiso('gestionar_disciplina'))
+          <a class="element{{ $active('disciplina.reportes.*') }}" href="{{ route('disciplina.reportes.index') }}">Disciplina</a>
+        @endif
+        @if($rol->tienePermiso('reportar_incidente'))
+          <a class="element{{ $active('disciplina.reportes.crear') }}" href="{{ route('disciplina.reportes.crear') }}">Reportar Incidente</a>
+        @endif
+        @if($rol->tienePermiso('ver_disciplina') && !$rol->tienePermiso('gestionar_disciplina'))
+          <a class="element{{ $active('disciplina.reportes.mis') }}" href="{{ route('disciplina.reportes.mis') }}">Mis Reportes</a>
+        @endif
+
+        @if($rol->tienePermiso('gestionar_orientacion') || $rol->tienePermiso('ver_orientacion') || $rol->tienePermiso('solicitar_orientacion'))
+          @php
+            $nombreRolLower = strtolower($rol->nombre ?? '');
+            $rutaOrientacion = route('orientacion.citas.vista');
+            if(in_array($nombreRolLower,['admin','administrador','rector','coordinadoracademico','coordinadordisciplina'])){
+              $rutaOrientacion = route('orientacion.citas.admin');
+            }
+          @endphp
+          <a class="element{{ $active('orientacion.*') }}" href="{{ $rutaOrientacion }}">Orientación</a>
+        @endif
+
+        @if($rol->tienePermiso('gestionar_notas') || $rol->tienePermiso('registrar_notas') || $rol->tienePermiso('ver_notas'))
+          <a class="element{{ $active(['notas.*','docentes.grupos']) }}" href="{{ route('notas.mostrar') }}">Notas</a>
+        @endif
+
+        @php $esProfesor = $rol && (isset($rol->nombre) ? strtolower($rol->nombre) === 'profesor' : false); @endphp
+        @if($esProfesor || $rol->tienePermiso('gestionar_notas'))
+          <a class="element{{ $active('docentes.grupos') }}" href="{{ route('docentes.grupos') }}">Grupos & Notas</a>
+        @endif
+
+        @if($rol->tienePermiso('configurar_sistema'))
+          <a class="element{{ $active('configuracion.*') }}" href="{{ route('configuracion.index') }}">Configuración</a>
+        @endif
+      @endif
+    </div>
+  </div>
 </div>
 
-<button id="sidebarHandle" class="sidebar-handle" aria-label="Abrir menú" title="Abrir menú">
-    <i class="fas fa-bars"></i>
+<button id="sidebarHandle" class="sidebar-handle" title="Mostrar menú" aria-label="Mostrar menú">
+  <i class="fas fa-bars"></i> Menú
+  <span class="visually-hidden">Abrir menú lateral</span>
 </button>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const sidebar = document.getElementById('appSidebar');
-    const toggle = document.getElementById('sidebarToggle');
-    const storageKey = 'app.sidebar.collapsed';
-    const handle = document.getElementById('sidebarHandle');
-    const resetBtn = document.getElementById('sidebarReset');
+document.addEventListener('DOMContentLoaded', function(){
+  const storageKey = 'app.sidebar.collapsed';
+  const body = document.body;
+  const collapseBtn = document.getElementById('sidebarCollapseBtn');
+  const handleBtn = document.getElementById('sidebarHandle');
 
-    function setCollapsed(collapsed) {
-        if (collapsed) sidebar.classList.add('collapsed');
-        else sidebar.classList.remove('collapsed');
-        try { localStorage.setItem(storageKey, collapsed ? '1' : '0'); } catch(e) {}
-    }
+  function setCollapsed(state){
+    if(state){ body.classList.add('sidebar-collapsed'); }
+    else { body.classList.remove('sidebar-collapsed'); }
+    try{ localStorage.setItem(storageKey, state ? '1' : '0'); }catch(e){}
+  }
 
-    function updateHandles(collapsed) {
-        if (toggle) toggle.style.display = collapsed ? 'none' : 'inline-block';
-        if (handle) handle.style.display = collapsed ? 'flex' : 'none';
-    }
+  // Estado inicial desde almacenamiento
+  try {
+    const stored = localStorage.getItem(storageKey);
+    if(stored === '1') { body.classList.add('sidebar-collapsed'); }
+  } catch(e) {}
 
-    try {
-        const stored = localStorage.getItem(storageKey);
-        const collapsed = stored === '1';
-        setCollapsed(collapsed);
-        updateHandles(collapsed);
-    } catch(e) {
-        updateHandles(false);
-    }
-
-    let touchStartX = null;
-    window.addEventListener('touchstart', function (e) {
-        if (e.touches && e.touches[0]) touchStartX = e.touches[0].clientX;
-    }, {passive:true});
-    window.addEventListener('touchend', function (e) {
-        if (touchStartX !== null) {
-            const touchEndX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : null;
-            if (touchEndX !== null) {
-                const delta = touchEndX - touchStartX;
-                if (touchStartX < 40 && delta > 80) {
-                    setCollapsed(false);
-                    updateHandles(false);
-                }
-            }
-        }
-        touchStartX = null;
-    }, {passive:true});
-
-    toggle.addEventListener('click', function () {
-        const isCollapsed = sidebar.classList.contains('collapsed');
-        const newState = !isCollapsed;
-        setCollapsed(newState);
-        updateHandles(newState);
-    });
-
-    handle.addEventListener('click', function () {
-        setCollapsed(false);
-        updateHandles(false);
-    });
-
-    if (resetBtn) {
-        resetBtn.addEventListener('click', function () {
-            try { localStorage.removeItem(storageKey); } catch(e) {}
-            setCollapsed(false);
-            updateHandles(false);
-        });
-    }
+  if(collapseBtn){
+    collapseBtn.addEventListener('click', function(){ setCollapsed(true); });
+  }
+  if(handleBtn){
+    handleBtn.addEventListener('click', function(){ setCollapsed(false); });
+  }
 });
 </script>

@@ -22,13 +22,16 @@
             --color-hover: #34495e;
             --color-texto: #2c3e50;
             --color-blanco: #ffffff;
+            --navbar-height: 56px; /* altura navbar fija */
+            --navbar-h: 56px; /* alias para compatibilidad */
         }
 
         /* 🧩 Estilos generales */
         body {
-            background: var(--color-fondo);
+            background: linear-gradient(135deg,#dfe5ff 0%,#ebe6ff 100%);
             color: var(--color-texto);
             font-family: "Segoe UI", sans-serif;
+            min-height: 100vh;
         }
 
         .navbar-brand {
@@ -73,8 +76,10 @@
             background: var(--color-fondo);
             min-height: calc(100vh - 56px);
         }
+        .app-main { padding-top: var(--navbar-height); }
     </style>
     
+    <link rel="stylesheet" href="{{ asset('css/admin-theme.css') }}">
     @stack('styles')
     @stack('head')
 </head>
@@ -96,7 +101,11 @@
     
     <style>
         .app-main.with-sidebar { padding-left:260px; }
-        @media (max-width: 992px) { .app-main.with-sidebar { padding-left:0; } }
+        /* Mantener padding también en móviles para no solapar la sidebar fija */
+        @media (max-width: 992px) { .app-main.with-sidebar { padding-left:260px; } }
+        /* Cuando la sidebar está colapsada, el contenido ocupa todo el ancho */
+        body.sidebar-collapsed .app-main.with-sidebar { padding-left: 0; }
+        @media (max-width: 992px) { body.sidebar-collapsed .app-main.with-sidebar { padding-left: 0; } }
     </style>
     @stack('scripts')
 </body>

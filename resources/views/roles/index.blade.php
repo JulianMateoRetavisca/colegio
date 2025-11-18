@@ -9,20 +9,17 @@
 @endphp
 
 
-<div class="container-fluid">
-    <div class="row g-0">
-        <!-- Sidebar manejada por layout -->
-
-        <!-- Main Content -->
-        <div class="col-md-9 col-lg-10 px-4 py-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h1 class="h3 text-dark">
-                        <i class="fas fa-user-shield me-2 text-primary"></i>Lista de Roles
-                    </h1>
-                    <p class="text-muted mb-0">Administración de roles del sistema</p>
-                </div>
-            </div>
+<div class="page-section">
+    <div class="page-header">
+        <div>
+            <h2 class="page-header-title"><i class="fas fa-user-shield me-2 text-primary"></i>Lista de Roles</h2>
+            <p class="page-header-sub">Administración de roles del sistema</p>
+        </div>
+        <div class="action-bar">
+            <a href="{{ route('roles.crear') }}" class="btn-pro primary"><i class="fas fa-plus-circle"></i>Nuevo rol</a>
+            <a href="{{ route('sin') }}" class="btn-pro outline"><i class="fas fa-user-slash"></i>Sin rol</a>
+        </div>
+    </div>
 
             <!-- Banner de actualizaciones en vivo -->
             <div id="rolesLiveBanner" 
@@ -40,51 +37,42 @@
                 <div class="alert alert-danger shadow-sm border-0 rounded-3">{{ session('error') }}</div>
             @endif
 
-            <!-- Botones principales -->
-            <div class="d-flex justify-content-end gap-2 mb-4">
-                <a href="{{ route('roles.crear') }}" class="btn btn-primary px-3">
-                    <i class="fas fa-plus-circle me-2"></i>Crear nuevo rol
-                </a>
-                <a href="{{ route('sin') }}" class="btn btn-secondary px-3">
-                    <i class="fas fa-user-slash me-2"></i>Ver usuarios sin rol
-                </a>
-            </div>
-
-            <!-- Tabla de roles -->
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-body p-4">
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0">
-                            <thead class="table-light">
+            <div class="pro-card">
+                <div class="pro-card-header">
+                    <h5 class="m-0"><i class="fas fa-layer-group me-2"></i>Roles del Sistema</h5>
+                </div>
+                <div class="pro-table-wrapper">
+                    <table class="pro-table">
+                        <thead>
                                 <tr>
                                     <th>Nombre</th>
                                     <th>Descripción</th>
                                     <th>Usuarios asignados</th>
                                     <th class="text-center">Acciones</th>
                                 </tr>
-                            </thead>
-                            <tbody>
+                        </thead>
+                        <tbody>
                                 @foreach($roles as $rol)
                                 <tr>
                                     <td><strong>{{ $rol->nombre }}</strong></td>
                                     <td>{{ $rol->descripcion }}</td>
                                     <td>
-                                        <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                                        <span class="badge-soft">
                                             {{ $rol->usuarios_count }}
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <div class="btn-group">
-                                            <a href="{{ route('roles.mostrar', $rol->id) }}" class="btn btn-sm btn-outline-info" title="Ver">
+                                        <div class="action-bar justify-content-center">
+                                            <a href="{{ route('roles.mostrar', $rol->id) }}" class="btn-pro outline" title="Ver">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('roles.editar', $rol->id) }}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                            <a href="{{ route('roles.editar', $rol->id) }}" class="btn-pro info" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form action="{{ route('roles.eliminar', $rol->id) }}" method="POST" class="d-inline-block">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="return confirm('¿Seguro que deseas eliminar este rol?')">
+                                                <button type="submit" class="btn-pro danger" title="Eliminar" onclick="return confirm('¿Seguro que deseas eliminar este rol?')">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </form>
@@ -92,67 +80,16 @@
                                     </td>
                                 </tr>
                                 @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-
-        </div>
     </div>
 </div>
 
 {{-- Form moved to navbar partial --}}
 
-<!-- Estilos -->
-<style>
-body {
-    background: linear-gradient(135deg, #dce3ff 0%, #e6e0ff 100%);
-    font-family: 'Poppins', sans-serif;
-}
-
-.navbar {
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.card {
-    backdrop-filter: blur(12px);
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.table > thead > tr {
-    background-color: rgba(240, 240, 255, 0.8);
-}
-
-.btn-outline-warning {
-    color: #d18f00;
-    border-color: #d18f00;
-}
-.btn-outline-warning:hover {
-    background-color: #d18f00;
-    color: #fff;
-}
-
-.btn-primary {
-    background-color: #6a74e1;
-    border-color: #6a74e1;
-}
-.btn-primary:hover {
-    background-color: #5b65c5;
-    border-color: #5b65c5;
-}
-
-.btn-secondary {
-    background-color: #b6b7d8;
-    border-color: #b6b7d8;
-    color: #2e2e2e;
-}
-.btn-secondary:hover {
-    background-color: #a2a3c7;
-    border-color: #a2a3c7;
-}
-</style>
+<!-- Estilos específicos (si se necesita) -->
 
 @endsection
 

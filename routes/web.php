@@ -9,6 +9,7 @@ use App\Http\Controllers\RolController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\UsuarioSinrollController;
 use App\Http\Controllers\EstudiantesController;
+use App\Http\Controllers\SettingsController;
 
 // Ruta raíz redirige al login
 Route::get('/', function () {
@@ -111,6 +112,10 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{materia}', [App\Http\Controllers\MateriaController::class, 'eliminar'])->name('eliminar');
         Route::get('/asignar', [App\Http\Controllers\MateriaController::class, 'asignar'])->name('asignar');
     });
+
+    // Configuración del sistema
+    Route::get('/configuracion', [SettingsController::class, 'index'])->name('configuracion.index');
+    Route::post('/configuracion', [SettingsController::class, 'update'])->name('configuracion.guardar');
 });
 
 // Exponer la vista pública de notas fuera del middleware 'auth' para que cualquiera pueda verla
@@ -228,5 +233,24 @@ Route::prefix('orientacion')->name('orientacion.')->middleware('auth')->group(fu
     Route::post('/citas/{id}/realizar', [App\Http\Controllers\OrientacionCitaController::class,'realizar'])->name('citas.realizar');
     Route::post('/citas/{id}/observaciones', [App\Http\Controllers\OrientacionCitaController::class,'registrarObservaciones'])->name('citas.observaciones');
     Route::post('/citas/{id}/seguimiento', [App\Http\Controllers\OrientacionCitaController::class,'evaluarSeguimiento'])->name('citas.seguimiento');
+});
+
+// Flujo disciplinario
+Route::prefix('disciplina')->name('disciplina.')->middleware('auth')->group(function(){
+    Route::get('/reportes', [App\Http\Controllers\ReporteDisciplinaController::class,'index'])->name('reportes.index');
+    Route::get('/mis-reportes', [App\Http\Controllers\ReporteDisciplinaController::class,'mis'])->name('reportes.mis');
+    Route::get('/reportar', [App\Http\Controllers\ReporteDisciplinaController::class,'crear'])->name('reportes.crear');
+    Route::post('/reportes', [App\Http\Controllers\ReporteDisciplinaController::class,'store'])->name('reportes.store');
+    Route::post('/reportes/{id}/revisar', [App\Http\Controllers\ReporteDisciplinaController::class,'revisar'])->name('reportes.revisar');
+    Route::post('/reportes/{id}/asignar-sancion', [App\Http\Controllers\ReporteDisciplinaController::class,'asignarSancion'])->name('reportes.asignar_sancion');
+    Route::post('/reportes/{id}/notificar', [App\Http\Controllers\ReporteDisciplinaController::class,'notificar'])->name('reportes.notificar');
+    Route::post('/reportes/{id}/apelacion', [App\Http\Controllers\ReporteDisciplinaController::class,'solicitarApelacion'])->name('reportes.apelacion.solicitar');
+    Route::post('/reportes/{id}/apelacion-revisar', [App\Http\Controllers\ReporteDisciplinaController::class,'revisarApelacion'])->name('reportes.apelacion.revisar');
+    Route::post('/reportes/{id}/apelacion-resolver', [App\Http\Controllers\ReporteDisciplinaController::class,'resolverApelacion'])->name('reportes.apelacion.resolver');
+    Route::post('/reportes/{id}/archivar', [App\Http\Controllers\ReporteDisciplinaController::class,'archivar'])->name('reportes.archivar');
+    Route::get('/reportes/{id}/historial', [App\Http\Controllers\ReporteDisciplinaController::class,'historial'])->name('reportes.historial');
+    // Auxiliares para formulario
+    Route::get('/grupos', [App\Http\Controllers\ReporteDisciplinaController::class,'grupos'])->name('grupos');
+    Route::get('/grupos/{id}/estudiantes', [App\Http\Controllers\ReporteDisciplinaController::class,'estudiantesGrupo'])->name('grupos.estudiantes');
 });
 
