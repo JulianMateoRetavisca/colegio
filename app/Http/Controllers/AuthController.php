@@ -28,11 +28,15 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             $user = Auth::user();
-            // Si es estudiante, llevar a la vista de notas de estudiante
+            // Redirecciones específicas por rol
             if ($user && $user->roles_id) {
                 $rol = \App\Models\RolesModel::find($user->roles_id);
-                if ($rol && $rol->nombre === 'Estudiante') {
-                    return redirect()->route('estudiantes.index');
+                if ($rol) {
+                    if ($rol->nombre === 'Estudiante') {
+                        return redirect()->route('estudiantes.index');
+                    } elseif ($rol->nombre === 'Profesor') {
+                        return redirect()->route('docentes.grupos');
+                    }
                 }
             }
             return redirect()->intended('dashboard');

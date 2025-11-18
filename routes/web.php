@@ -63,6 +63,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [App\Http\Controllers\NotasController::class, 'ValidarNota'])->name('guardar');
         // Ruta para actualizar una nota (protegida)
         Route::put('/{id}', [App\Http\Controllers\NotasController::class, 'ActualizarNota'])->name('actualizar');
+        // Transiciones de estado
+        Route::post('/{id}/publicar', [App\Http\Controllers\NotasController::class, 'publicar'])->name('publicar');
+        Route::post('/{id}/revisar', [App\Http\Controllers\NotasController::class, 'revisar'])->name('revisar');
+        Route::post('/{id}/bloquear', [App\Http\Controllers\NotasController::class, 'bloquear'])->name('bloquear');
+        Route::post('/{id}/revertir', [App\Http\Controllers\NotasController::class, 'revertir'])->name('revertir');
     });
 
     // Rutas para gestionar grupos (CRUD + asignar estudiantes)
@@ -139,6 +144,12 @@ Route::prefix('docentes')->name('docentes.')->middleware('auth')->group(function
     Route::get('/index', [App\Http\Controllers\DocenteController::class, 'index'])->name('index');
     Route::get('/crear', [App\Http\Controllers\DocenteController::class, 'crear'])->name('crear');
     Route::post('/', [App\Http\Controllers\DocenteController::class, 'store'])->name('store');
+    
+    // Rutas para gestión de grupos y notas por parte de docentes
+    Route::get('/grupos', [App\Http\Controllers\DocenteController::class, 'grupos'])->name('grupos');
+    Route::get('/grupos/{grupo}', [App\Http\Controllers\DocenteController::class, 'verGrupo'])->name('grupos.ver');
+    Route::get('/grupos/{grupo}/materia/{materia}', [App\Http\Controllers\DocenteController::class, 'gestionarNotas'])->name('grupos.notas');
+    Route::post('/grupos/{grupo}/materia/{materia}/asignar', [App\Http\Controllers\DocenteController::class, 'asignarNota'])->name('grupos.notas.asignar');
 });
 
 //ruta para usuarios sin rol
@@ -197,5 +208,25 @@ Route::prefix('matricula')->name('matricula.')->middleware('auth')->group(functi
         }
         return app(MatriculaController::class)->gestionarMatricula($id, $accion);
     })->name('gestionar');
+});
+
+// Flujo de orientación psicológica
+Route::prefix('orientacion')->name('orientacion.')->middleware('auth')->group(function(){
+    // Listado y filtros (orientador / admin)
+    Route::get('/citas', [App\Http\Controllers\OrientacionCitaController::class,'index'])->name('citas.index');
+    // Historial de una cita
+    Route::get('/citas/{id}/historial', [App\Http\Controllers\OrientacionCitaController::class,'historial'])->name('citas.historial');
+    // Vista HTML (listado)
+    Route::get('/citas-ui', [App\Http\Controllers\OrientacionCitaController::class,'vistaListado'])->name('citas.vista');
+    Route::get('/citas-admin-ui', [App\Http\Controllers\OrientacionCitaController::class,'vistaAdmin'])->name('citas.admin');
+    // Estudiante solicita
+    Route::post('/citas/solicitar', [App\Http\Controllers\OrientacionCitaController::class,'solicitar'])->name('citas.solicitar');
+    // Transiciones (requieren permiso gestionar_orientacion)
+    Route::post('/citas/{id}/revisar', [App\Http\Controllers\OrientacionCitaController::class,'revisar'])->name('citas.revisar');
+    Route::post('/citas/{id}/asignar', [App\Http\Controllers\OrientacionCitaController::class,'asignar'])->name('citas.asignar');
+    Route::post('/citas/{id}/reprogramar', [App\Http\Controllers\OrientacionCitaController::class,'reprogramar'])->name('citas.reprogramar');
+    Route::post('/citas/{id}/realizar', [App\Http\Controllers\OrientacionCitaController::class,'realizar'])->name('citas.realizar');
+    Route::post('/citas/{id}/observaciones', [App\Http\Controllers\OrientacionCitaController::class,'registrarObservaciones'])->name('citas.observaciones');
+    Route::post('/citas/{id}/seguimiento', [App\Http\Controllers\OrientacionCitaController::class,'evaluarSeguimiento'])->name('citas.seguimiento');
 });
 

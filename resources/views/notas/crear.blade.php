@@ -12,7 +12,7 @@
         </div>
         <div class="col-md-9 col-lg-10">
             <div class="main-content p-4">
-                <h1>Asignar / Crear Nota</h1>
+                <h1>Asignar / Crear Nota <small class="text-muted">(estado inicial: borrador)</small></h1>
 
                 @if($errors->any())
                     <div class="alert alert-danger">
@@ -61,7 +61,7 @@
                         <input type="text" name="periodo" id="periodo" class="form-control" maxlength="4" placeholder="Ej: 2025" required>
                     </div>
 
-                    <button type="submit" class="btn btn-success">Guardar nota</button>
+                    <button type="submit" class="btn btn-success">Guardar nota (Borrador)</button>
                     <a href="{{ route('dashboard') }}" class="btn btn-secondary">Cancelar</a>
                 </form>
                 <script>

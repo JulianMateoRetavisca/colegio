@@ -52,7 +52,9 @@ class NotasController extends Controller
             'periodo' => 'required|string|max:4',
         ]);
 
-        $nota = NotaModel::create($request->only(['estudiante_id','materia_id','nota','periodo']));
+        $payload = $request->only(['estudiante_id','materia_id','nota','periodo']);
+        $payload['estado'] = NotaModel::ESTADO_BORRADOR;
+        $nota = NotaModel::create($payload);
         // Si la petición espera JSON (AJAX/API), devolver JSON. Si es un formulario web, redirigir a la vista de notas.
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json($nota, 201);
@@ -304,6 +306,14 @@ class NotasController extends Controller
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
+        // Evitar modificación si está bloqueada
+        if ($nota->bloqueado) {
+            return response()->json(['message' => 'La nota está bloqueada y no puede modificarse'], 423);
+        }
+
+        // Si ya está publicada y no revisada, permitir sólo cambios menores (ej. periodo) - ejemplo simple
+        // Para ahora, permitimos actualizar cualquier campo excepto estado directamente.
+
         $request->validate([
             'estudiante_id' => 'sometimes|required|exists:users,id',
             'materia_id' => 'sometimes|required|integer',
@@ -311,8 +321,71 @@ class NotasController extends Controller
             'periodo' => 'sometimes|required|string|max:4',
         ]);
 
-        $nota->update($request->all());
+        $nota->update($request->except(['estado','publicado_at','revisado_at','bloqueado']));
         return response()->json($nota);
+    }
+
+    // TRANSICIONES DE ESTADO DEL FLUJO DE CALIFICACIONES
+    public function publicar($id)
+    {
+        $nota = NotaModel::find($id);
+        if(!$nota) return $this->simpleError('Nota no encontrada',404);
+        if(!Auth::check() || !Auth::user()->tienePermiso('modificar_notas')) return $this->simpleError('No autorizado',403);
+        if($nota->bloqueado) return $this->simpleError('La nota está bloqueada',423);
+        if($nota->estado !== NotaModel::ESTADO_BORRADOR) return $this->simpleError('Solo notas en borrador pueden publicarse',409);
+        $nota->estado = NotaModel::ESTADO_PUBLICADA;
+        $nota->publicado_at = now();
+        $nota->save();
+        return $this->returnAfterTransition($nota,'Nota publicada');
+    }
+
+    public function revisar($id)
+    {
+        $nota = NotaModel::find($id);
+        if(!$nota) return $this->simpleError('Nota no encontrada',404);
+        if(!Auth::check() || !Auth::user()->tienePermiso('gestionar_notas')) return $this->simpleError('No autorizado',403);
+        if($nota->bloqueado) return $this->simpleError('La nota está bloqueada',423);
+        if(!in_array($nota->estado,[NotaModel::ESTADO_PUBLICADA, NotaModel::ESTADO_REVISADA])) return $this->simpleError('La nota debe estar publicada para revisar',409);
+        $nota->estado = NotaModel::ESTADO_REVISADA;
+        $nota->revisado_at = now();
+        $nota->save();
+        return $this->returnAfterTransition($nota,'Nota revisada');
+    }
+
+    public function bloquear($id)
+    {
+        $nota = NotaModel::find($id);
+        if(!$nota) return $this->simpleError('Nota no encontrada',404);
+        if(!Auth::check() || !Auth::user()->tienePermiso('gestionar_notas')) return $this->simpleError('No autorizado',403);
+        if($nota->bloqueado) return $this->simpleError('Ya está bloqueada',409);
+        $nota->bloqueado = true;
+        $nota->estado = NotaModel::ESTADO_BLOQUEADA;
+        $nota->save();
+        return $this->returnAfterTransition($nota,'Nota bloqueada');
+    }
+
+    public function revertir($id)
+    {
+        $nota = NotaModel::find($id);
+        if(!$nota) return $this->simpleError('Nota no encontrada',404);
+        if(!Auth::check() || !Auth::user()->tienePermiso('gestionar_notas')) return $this->simpleError('No autorizado',403);
+        if($nota->bloqueado) return $this->simpleError('No puede revertirse una nota bloqueada',423);
+        // Revertir a borrador para ajustes
+        $nota->estado = NotaModel::ESTADO_BORRADOR;
+        $nota->save();
+        return $this->returnAfterTransition($nota,'Nota revertida a borrador');
+    }
+
+    private function simpleError($msg,$code=400)
+    {
+        if(request()->wantsJson()) return response()->json(['message'=>$msg],$code);
+        return redirect()->back()->with('error',$msg);
+    }
+
+    private function returnAfterTransition($nota,$msg)
+    {
+        if(request()->wantsJson()) return response()->json(['message'=>$msg,'nota'=>$nota]);
+        return redirect()->back()->with('success',$msg);
     }
 
 }

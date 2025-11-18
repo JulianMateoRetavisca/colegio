@@ -162,7 +162,12 @@ if ($usuario && $usuario->roles_id) {
                     <span class="label">Cursos</span>
                 </a>
             @endif
-            @if($rol->tienePermiso('gestionar_horarios'))
+            @php
+                $nombreRolLower = $rol && isset($rol->nombre) ? strtolower($rol->nombre) : '';
+                $rolAlto = in_array($nombreRolLower, ['administrador','rector','coordinador']);
+                $esProfesor = $nombreRolLower === 'profesor';
+            @endphp
+            @if($rol->tienePermiso('gestionar_horarios') || $esProfesor || $rolAlto)
                 <a class="nav-link" href="{{ route('horarios.index') }}">
                     <i class="fas fa-calendar-alt me-2"></i>
                     <span class="label">Horarios</span>
@@ -174,16 +179,32 @@ if ($usuario && $usuario->roles_id) {
                     <span class="label">Disciplina</span>
                 </a>
             @endif
-            @if($rol->tienePermiso('ver_reportes_generales'))
-                <a class="nav-link" href="#">
-                    <i class="fas fa-chart-bar me-2"></i>
-                    <span class="label">Reportes</span>
+            @if($rol->tienePermiso('gestionar_orientacion') || $rol->tienePermiso('ver_orientacion') || $rol->tienePermiso('solicitar_orientacion'))
+                @php
+                    $nombreRolLower = strtolower($rol->nombre ?? '');
+                    $rutaOrientacion = route('orientacion.citas.vista');
+                    if(in_array($nombreRolLower,['admin','administrador','rector','coordinadoracademico','coordinadordisciplina'])){
+                        $rutaOrientacion = route('orientacion.citas.admin');
+                    }
+                @endphp
+                <a class="nav-link" href="{{ $rutaOrientacion }}">
+                    <i class="fas fa-comments me-2"></i>
+                    <span class="label">Orientación</span>
                 </a>
             @endif
             @if($rol->tienePermiso('gestionar_notas') || $rol->tienePermiso('registrar_notas') || $rol->tienePermiso('ver_notas'))
-                <a class="nav-link" href="{{ route('notas.crear') }}">
+                <a class="nav-link" href="{{ route('notas.mostrar') }}">
                     <i class="fas fa-money-bill-wave me-2"></i>
                     <span class="label">Notas</span>
+                </a>
+            @endif
+            @php
+                $esProfesor = $rol && (isset($rol->nombre) ? strtolower($rol->nombre) === 'profesor' : false);
+            @endphp
+            @if($esProfesor || $rol->tienePermiso('gestionar_notas'))
+                <a class="nav-link" href="{{ route('docentes.grupos') }}">
+                    <i class="fas fa-clipboard-list me-2"></i>
+                    <span class="label">Grupos & Notas</span>
                 </a>
             @endif
             @if($rol->tienePermiso('configurar_sistema'))

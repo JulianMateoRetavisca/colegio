@@ -58,6 +58,7 @@
                     <th>Materia</th>
                     <th>Periodo</th>
                     <th>Nota</th>
+                    <th>Estado</th>
                     <th>Estudiante</th>
                     <th>Acciones</th>
                 </tr>
@@ -69,10 +70,32 @@
                             <td>{{ isset($materias[$n->materia_id]) ? $materias[$n->materia_id] : ($n->materia_id ?? 'N/A') }}</td>
                             <td class="periodo">{{ $n->periodo }}</td>
                             <td class="nota">{{ $n->nota }}</td>
+                            <td class="estado">
+                                @php($estado = $n->estado ?? 'borrador')
+                                @switch($estado)
+                                    @case('borrador')<span class="badge bg-secondary">Borrador</span>@break
+                                    @case('publicada')<span class="badge bg-info">Publicada</span>@break
+                                    @case('revisada')<span class="badge bg-success">Revisada</span>@break
+                                    @case('bloqueada')<span class="badge bg-dark">Bloqueada</span>@break
+                                    @default <span class="badge bg-light text-dark">{{ $estado }}</span>
+                                @endswitch
+                            </td>
                             <td>{{ $n->estudiante->name ?? '' }}</td>
                             <td>
                                 @if(Auth::check() && Auth::user()->tienePermiso('modificar_notas'))
                                     <button class="btn btn-sm btn-primary editNotaBtn" data-id="{{ $n->id }}" data-materia="{{ $n->materia_id }}" data-periodo="{{ $n->periodo }}" data-nota="{{ $n->nota }}">Editar</button>
+                                @endif
+                                @if(Auth::check() && Auth::user()->tienePermiso('gestionar_notas'))
+                                    @php($estado = $n->estado ?? 'borrador')
+                                    @if($estado === 'borrador')
+                                        <form method="POST" action="{{ route('notas.publicar',$n->id) }}" class="d-inline">@csrf <button class="btn btn-sm btn-info">Publicar</button></form>
+                                    @elseif($estado === 'publicada')
+                                        <form method="POST" action="{{ route('notas.revisar',$n->id) }}" class="d-inline">@csrf <button class="btn btn-sm btn-success">Revisar</button></form>
+                                        <form method="POST" action="{{ route('notas.revertir',$n->id) }}" class="d-inline">@csrf <button class="btn btn-sm btn-warning">Revertir</button></form>
+                                    @elseif($estado === 'revisada')
+                                        <form method="POST" action="{{ route('notas.revertir',$n->id) }}" class="d-inline">@csrf <button class="btn btn-sm btn-warning">Revertir</button></form>
+                                        <form method="POST" action="{{ route('notas.bloquear',$n->id) }}" class="d-inline" onsubmit="return confirm('¿Bloquear nota definitivamente?');">@csrf <button class="btn btn-sm btn-dark">Bloquear</button></form>
+                                    @endif
                                 @endif
                             </td>
                         </tr>

@@ -76,13 +76,28 @@
     </style>
     
     @stack('styles')
+    @stack('head')
 </head>
 <body>
-    @yield('content')
+    @auth
+        @unless(View::hasSection('hide_navbar'))
+            @include('partials.navbar')
+        @endunless
+        @unless(View::hasSection('hide_sidebar'))
+            @include('partials.sidebar')
+        @endunless
+    @endauth
+    <main class="app-main @auth {{ View::hasSection('hide_sidebar') ? '' : 'with-sidebar' }} @endauth">
+        @yield('content')
+    </main>
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <style>
+        .app-main.with-sidebar { padding-left:260px; }
+        @media (max-width: 992px) { .app-main.with-sidebar { padding-left:0; } }
+    </style>
     @stack('scripts')
 </body>
 </html>
