@@ -50,7 +50,23 @@ class AuthController extends Controller
     // Mostrar dashboard/menú principal
     public function dashboard()
     {
-        return view('dashboard');
+        // Métricas reales
+        $usuarios = \App\Models\User::count();
+        // Rol estudiante puede tener mayúsculas/minúsculas diferentes, normalizamos
+        $estudiantes = \App\Models\User::whereHas('rol', function($q){
+            $q->whereRaw('LOWER(nombre) = ?', ['estudiante']);
+        })->count();
+
+        // Citas de orientación activas (no cerradas)
+        $citas = \App\Models\OrientacionCita::where('estado','!=', \App\Models\OrientacionCita::ESTADO_CERRADA)->count();
+
+        // Reportes de disciplina abiertos (no archivados)
+        $reportesAbiertos = \App\Models\ReporteDisciplina::where('estado','!=', \App\Models\ReporteDisciplina::ESTADO_ARCHIVADO)->count();
+
+        // Pendientes: suma de activos (citas abiertas + reportes abiertos)
+        $pendientes = $citas + $reportesAbiertos;
+
+        return view('dashboard', compact('usuarios','estudiantes','citas','pendientes','reportesAbiertos'));
     }
 
     // Procesar logout

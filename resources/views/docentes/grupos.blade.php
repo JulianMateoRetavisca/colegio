@@ -3,69 +3,48 @@
 @section('title', 'Gestión de Grupos - Docentes')
 
 @section('content')
-<div class="container py-4 mt-3">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="fas fa-users"></i> Gestión de Grupos</h2>
-                <a href="{{ route('docentes.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Volver
-                </a>
-            </div>
+<section class="page-section">
+    <div class="page-header">
+        <div class="page-title">
+            <h1 class="h4 mb-0"><i class="fas fa-users me-2 text-primary"></i>Gestión de Grupos</h1>
+            <p class="subtitle">Selecciona un grupo para administrar sus notas</p>
+        </div>
+        <div class="action-bar">
+            <a href="{{ route('docentes.index') }}" class="btn-pro outline"><i class="fas fa-arrow-left me-1"></i>Volver</a>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-list"></i> Seleccionar Grupo para Gestionar Notas
-                    </h5>
-                </div>
-                <div class="card-body">
-                    @if($grupos->count() > 0)
-                        <div class="row">
-                            @foreach($grupos as $grupo)
-                                <div class="col-md-6 col-lg-4 mb-3">
-                                    <div class="card h-100 border-left-primary">
-                                        <div class="card-body">
-                                            <h6 class="card-title text-primary">
-                                                <i class="fas fa-users"></i> {{ $grupo->nombre }}
-                                            </h6>
-                                            <p class="card-text text-muted">
-                                                Gestionar notas y calificaciones del grupo
-                                            </p>
-                                            <a href="{{ route('docentes.grupos.ver', $grupo->id) }}" 
-                                               class="btn btn-primary btn-sm">
-                                                <i class="fas fa-eye"></i> Ver Grupo
-                                            </a>
-                                        </div>
-                                    </div>
+    <div class="pro-card">
+        <div class="pro-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h2 class="h6 mb-0"><i class="fas fa-list me-1"></i>Grupos asignados</h2>
+            <span class="badge bg-primary">Total: {{ $grupos->count() }}</span>
+        </div>
+        <div class="pro-card-body">
+            @if($grupos->count() > 0)
+                <div class="row g-3">
+                    @foreach($grupos as $grupo)
+                        <div class="col-sm-6 col-lg-4">
+                            <div class="pro-card mini h-100">
+                                <div class="pro-card-body">
+                                    <h6 class="mb-1 fw-semibold text-primary"><i class="fas fa-users me-1"></i>{{ $grupo->nombre }}</h6>
+                                    <p class="text-muted small mb-2">Notas y calificaciones del grupo</p>
+                                    <a href="{{ route('docentes.grupos.ver', $grupo->id) }}" class="btn-pro xs primary" title="Ver Grupo"><i class="fas fa-eye"></i> Ver</a>
                                 </div>
-                            @endforeach
+                            </div>
                         </div>
-                    @else
-                        <div class="text-center py-5">
-                            <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No hay grupos disponibles</h5>
-                            <p class="text-muted">Contacta al administrador para crear grupos.</p>
-                        </div>
-                    @endif
+                    @endforeach
                 </div>
-            </div>
+            @else
+                <div class="empty-state text-center py-5">
+                    <i class="fas fa-users-slash fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-2">No hay grupos disponibles.</p>
+                    <small class="text-muted">Contacta al administrador para crear grupos.</small>
+                </div>
+            @endif
         </div>
     </div>
-</div>
+</section>
 @endsection
 
 @section('scripts')
-<style>
-.border-left-primary {
-    border-left: 4px solid #007bff !important;
-}
-.card-title {
-    font-weight: 600;
-}
-</style>
 @endsection
