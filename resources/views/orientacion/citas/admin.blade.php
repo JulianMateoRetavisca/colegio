@@ -62,12 +62,31 @@
                 <td><span class="badge bg-dark">{{ $c->estado }}</span></td>
                 <td style="max-width:180px; font-size:12px">{{ $c->motivo }}</td>
                 <td style="font-size:12px">
-                    Solicitada: {{ $c->fecha_solicitada ?? '—' }}<br>
-                    Asignada: {{ $c->fecha_asignada ? ($c->fecha_asignada.' '.$c->hora_asignada) : '—' }}<br>
-                    Próxima: {{ $c->fecha_proxima ?? '—' }}<br>
-                    Cerrada: {{ $c->cerrada_at ?? '—' }}
+                    {{-- Paso 1: reemplazo temporal para descartar bloque de fechas como origen --}}
+                    @php
+                        $debugData = [
+                            'fecha_solicitada_type' => gettype($c->fecha_solicitada),
+                            'fecha_asignada_type'   => gettype($c->fecha_asignada),
+                            'hora_asignada_type'    => gettype($c->hora_asignada),
+                            'fecha_proxima_type'    => gettype($c->fecha_proxima),
+                            'cerrada_at_type'       => gettype($c->cerrada_at),
+                        ];
+                        echo '<div class="small text-muted">FD TYPES: '.e(json_encode($debugData)).'</div>';
+                    @endphp
+                    {{-- Mostrar solo IDs para verificar que el error persiste sin concatenaciones --}}
+                    Solicitada: [omitida temporal]<br>
+                    Asignada: [omitida temporal]<br>
+                    Próxima: [omitida temporal]<br>
+                    Cerrada: [omitida temporal]
                 </td>
-                <td><a class="btn btn-sm btn-outline-primary" target="_blank" href="{{ url('/orientacion/citas/'.$c->id+'/historial') }}">Ver</a></td>
+                    <td>
+                        @php
+                            $idType = gettype($c->id);
+                            $historialUrl = url('/orientacion/citas').'/'.$c->id.'/historial';
+                            echo '<div class="small text-muted">ID TYPE: '.e($idType).'</div>';
+                        @endphp
+                        <a class="btn btn-sm btn-outline-primary" target="_blank" href="{{ $historialUrl }}">Ver</a>
+                    </td>
             </tr>
         @empty
             <tr><td colspan="7" class="text-center text-muted">No hay citas que coincidan</td></tr>
@@ -76,7 +95,27 @@
     </table>
 
     <div class="d-flex justify-content-center">
-        {{ $citas->links() }}
+        @php
+            // Paso 2: debug profundo de paginator
+            $dbgCurrent = $citas->currentPage();
+            $dbgPerPage = $citas->perPage();
+            $dbgTotal = $citas->total();
+            $dbgLast = $citas->lastPage();
+            $dbgClass = get_class($citas);
+            $rawPageParam = request()->query('page');
+            echo '<div class="alert alert-info p-2 small">PG:['.e($dbgClass).'] current='.e($dbgCurrent).'('.gettype($dbgCurrent).') perPage='.e($dbgPerPage).'('.gettype($dbgPerPage).') total='.e($dbgTotal).'('.gettype($dbgTotal).') last='.e($dbgLast).' rawPageParam='.e(var_export($rawPageParam,true)).'</div>';
+        @endphp
+        @php
+            try {
+                if($citas->total() > $citas->perPage()) {
+                    echo $citas->links();
+                } else {
+                    echo '<div class="small text-muted">Sin paginación (total <= perPage)</div>';
+                }
+            } catch(\Throwable $e) {
+                echo '<pre class="text-danger">Paginator EXCEPTION: '.e($e->getMessage()).'\n'.e($e->getFile().':'.$e->getLine()).'</pre>';
+            }
+        @endphp
     </div>
 </div>
 @endsection

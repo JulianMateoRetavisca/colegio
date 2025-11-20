@@ -195,7 +195,14 @@ class OrientacionCitaController extends Controller
         if($request->filled('estado')) $query->where('estado',$request->estado);
         if($request->filled('estudiante_id')) $query->where('estudiante_id',$request->estudiante_id);
         if($request->filled('orientador_id')) $query->where('orientador_id',$request->orientador_id);
-        $citas = $query->paginate(25)->appends($request->query());
+        // Sanitizar parámetros de paginación para evitar tipos no numéricos que rompan internamente (int + string)
+        $perPageRaw = $request->query('per_page', 25);
+        $pageRaw = $request->query('page', 1);
+        $perPage = (int) filter_var($perPageRaw, FILTER_SANITIZE_NUMBER_INT);
+        if($perPage <= 0) $perPage = 25;
+        $page = (int) filter_var($pageRaw, FILTER_SANITIZE_NUMBER_INT);
+        if($page <= 0) $page = 1;
+        $citas = $query->paginate($perPage, ['*'], 'page', $page)->appends($request->query());
 
         // Listas auxiliares simples (podrían optimizarse luego)
         $estudiantes = OrientacionCita::select('estudiante_id')->distinct()->with('estudiante')->get()->pluck('estudiante');
