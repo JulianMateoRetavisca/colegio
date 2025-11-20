@@ -13,6 +13,13 @@
         @endif
     </div>
 
+    @if(session('ok'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-1"></i>{{ session('ok') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
     @if($user->tienePermiso('solicitar_orientacion'))
     <div class="collapse show mb-4" id="solicitudCita">
         <div class="pro-card">

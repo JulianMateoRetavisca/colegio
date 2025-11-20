@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('title', 'Notas: ' . $materia->nombre . ' - ' . $grupo->nombre)
@@ -20,7 +21,6 @@
             </div>
         </div>
     </div>
-
     @if($estudiantes->count() > 0)
     <div class="row">
         <div class="col-12">
@@ -36,10 +36,10 @@
                         <div class="col-md-3">
                             <label for="periodo" class="form-label">Período:</label>
                             <select id="periodo" class="form-select">
-                                <option value="1">Primer Período</option>
-                                <option value="2">Segundo Período</option>
-                                <option value="3">Tercer Período</option>
-                                <option value="4">Cuarto Período</option>
+                                <option value="1" {{ (isset($periodoSeleccionado) && $periodoSeleccionado=='1') ? 'selected' : '' }}>Primer Período</option>
+                                <option value="2" {{ (isset($periodoSeleccionado) && $periodoSeleccionado=='2') ? 'selected' : '' }}>Segundo Período</option>
+                                <option value="3" {{ (isset($periodoSeleccionado) && $periodoSeleccionado=='3') ? 'selected' : '' }}>Tercer Período</option>
+                                <option value="4" {{ (isset($periodoSeleccionado) && $periodoSeleccionado=='4') ? 'selected' : '' }}>Cuarto Período</option>
                             </select>
                         </div>
                         <div class="col-md-9">
@@ -57,12 +57,15 @@
 
                     <!-- Tabla de Estudiantes y Notas -->
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table class="table table-striped table-hover align-middle">
                             <thead class="table-dark">
                                 <tr>
                                     <th width="50">#</th>
                                     <th>Estudiante</th>
-                                    <th width="150">Nota Actual</th>
+                                    <th width="80">P1</th>
+                                    <th width="80">P2</th>
+                                    <th width="80">P3</th>
+                                    <th width="80">P4</th>
                                     <th width="200">Nueva Nota</th>
                                     <th width="120">Acciones</th>
                                 </tr>
@@ -75,11 +78,10 @@
                                         <strong>{{ $estudiante->name }}</strong><br>
                                         <small class="text-muted">{{ $estudiante->email }}</small>
                                     </td>
-                                    <td>
-                                        <span class="badge bg-info nota-actual" id="nota-actual-{{ $estudiante->id }}">
-                                            {{ $notasExistentes[$estudiante->id]->nota ?? 'Sin nota' }}
-                                        </span>
-                                    </td>
+                                    <td><span id="cell-1-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['1']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['1'] ?? '—' }}</span></td>
+                                    <td><span id="cell-2-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['2']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['2'] ?? '—' }}</span></td>
+                                    <td><span id="cell-3-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['3']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['3'] ?? '—' }}</span></td>
+                                    <td><span id="cell-4-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['4']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['4'] ?? '—' }}</span></td>
                                     <td>
                                         <input type="number" 
                                                class="form-control nota-input" 
@@ -144,6 +146,14 @@
         </div>
     </div>
 </div>
+
+<!-- Toast de guardado -->
+<div id="saveToast" class="toast align-items-center text-bg-success border-0 position-fixed" style="bottom:20px;right:20px;z-index:1055;" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+        <div class="toast-body" id="saveToastBody">Nota guardada</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -153,9 +163,9 @@ const materiaId = {{ $materia->id }};
 
 function cargarNotas() {
     const periodo = document.getElementById('periodo').value;
-    // Aquí podrías hacer una petición AJAX para cargar las notas del período seleccionado
-    // Por ahora solo mostramos las notas existentes
-    location.reload();
+    const url = new URL(window.location.href);
+    url.searchParams.set('periodo', periodo);
+    window.location.href = url.toString();
 }
 
 function guardarNota(estudianteId) {
@@ -189,15 +199,19 @@ function guardarNota(estudianteId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Actualizar la nota actual
-            document.getElementById(`nota-actual-${estudianteId}`).textContent = nota;
-            document.getElementById(`nota-actual-${estudianteId}`).className = 'badge bg-success';
+            // Actualizar la celda del período correspondiente
+            const cell = document.getElementById(`cell-${periodo}-${estudianteId}`);
+            if (cell) {
+                cell.textContent = nota;
+                cell.className = 'badge bg-success';
+            }
             
             // Limpiar el input
             notaInput.value = '';
             
             // Mostrar mensaje de éxito
             showAlert('Nota guardada correctamente', 'success');
+            showToast('Nota guardada correctamente');
         } else {
             showAlert(data.error || 'Error al guardar la nota', 'danger');
         }
@@ -264,13 +278,14 @@ function guardarTodasNotas() {
                 .then(data => {
                     completadas++;
                     if (data.success) {
-                        document.getElementById(`nota-actual-${nota.estudianteId}`).textContent = nota.nota;
-                        document.getElementById(`nota-actual-${nota.estudianteId}`).className = 'badge bg-success';
+                        const cell = document.getElementById(`cell-${periodo}-${nota.estudianteId}`);
+                        if (cell) { cell.textContent = nota.nota; cell.className = 'badge bg-success'; }
                         document.getElementById(`nota-${nota.estudianteId}`).value = '';
                     }
                     
                     if (completadas === notasAGuardar.length) {
                         showAlert('Todas las notas han sido guardadas', 'success');
+                        showToast('Todas las notas guardadas');
                     }
                 });
             }, index * 500); // Retraso entre peticiones para evitar sobrecarga
@@ -294,6 +309,19 @@ function showAlert(message, type) {
             alertDiv.parentNode.removeChild(alertDiv);
         }
     }, 5000);
+}
+
+function showToast(message){
+    const toastEl = document.getElementById('saveToast');
+    const bodyEl = document.getElementById('saveToastBody');
+    if (!toastEl || !bodyEl) return;
+    bodyEl.textContent = message;
+    // Instanciar bootstrap toast dinámicamente
+    let toast = bootstrap.Toast.getInstance(toastEl);
+    if (!toast) {
+        toast = new bootstrap.Toast(toastEl, { delay: 2500 });
+    }
+    toast.show();
 }
 </script>
 @endsection

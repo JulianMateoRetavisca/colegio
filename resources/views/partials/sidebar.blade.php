@@ -210,13 +210,15 @@ body.sidebar-collapsed .sidebar-handle { display: inline-flex; align-items:cente
           <a class="element{{ $active('orientacion.*') }}" href="{{ $rutaOrientacion }}">Orientación</a>
         @endif
 
-        @if($rol->tienePermiso('gestionar_notas') || $rol->tienePermiso('registrar_notas') || $rol->tienePermiso('ver_notas'))
-          <a class="element{{ $active(['notas.*','docentes.grupos']) }}" href="{{ route('notas.mostrar') }}">Notas</a>
+        @php $esEstudianteEstricto = $rol && strtolower($rol->nombre ?? '') === 'estudiante'; @endphp
+        @if($esEstudianteEstricto)
+          <a class="element{{ $active(['notas.*']) }}" href="{{ route('notas.mostrar') }}">Mis Notas</a>
         @endif
 
         @php $esProfesor = $rol && (isset($rol->nombre) ? strtolower($rol->nombre) === 'profesor' : false); @endphp
         @if($esProfesor || $rol->tienePermiso('gestionar_notas'))
           <a class="element{{ $active('docentes.grupos') }}" href="{{ route('docentes.grupos') }}">Grupos & Notas</a>
+          <a class="element{{ $active('docentes.notas.resumen') }}" href="{{ route('docentes.notas.resumen') }}">Notas (Resumen)</a>
         @endif
 
         @if($rol->tienePermiso('configurar_sistema'))

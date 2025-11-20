@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\NotaModel;
+use App\Models\Materia;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -31,11 +32,16 @@ class NotasController extends Controller
         $estudiantes = User::orderBy('name')
             ->where('roles_id', 6)
             ->get(['id', 'name']);
-        $materias = [ 
-            1 => 'Matemáticas',
-            2 => 'Lenguaje',
-            3 => 'Ciencias',
-        ];
+        // Cargar materias dinámicamente si existe la tabla, si no usar fallback estático
+        if (\Illuminate\Support\Facades\Schema::hasTable('materias')) {
+            $materias = Materia::orderBy('nombre')->get()->pluck('nombre','id')->toArray();
+        } else {
+            $materias = [
+                1 => 'Matemáticas',
+                2 => 'Lenguaje',
+                3 => 'Ciencias',
+            ];
+        }
 
         return view('notas.crear', compact('estudiantes', 'materias'));
     }
@@ -49,12 +55,29 @@ class NotasController extends Controller
             'estudiante_id' => 'required|exists:users,id',
             'materia_id' => 'required|integer',
             'nota' => 'required|numeric|min:0|max:100',
-            'periodo' => 'required|string|max:4',
+            'periodo' => 'required|in:1,2,3,4',
         ]);
 
+        // Normalizar
         $payload = $request->only(['estudiante_id','materia_id','nota','periodo']);
-        $payload['estado'] = NotaModel::ESTADO_BORRADOR;
-        $nota = NotaModel::create($payload);
+        $payload['periodo'] = (string)intval($payload['periodo']);
+        $payload['nota'] = round((float)$payload['nota'], 2);
+        // Solo agregar campos de estado si existen en la tabla
+        if (\Illuminate\Support\Facades\Schema::hasColumn('notas','estado')) {
+            $payload['estado'] = NotaModel::ESTADO_BORRADOR;
+        }
+        // Garantizar unicidad estudiante-materia-periodo
+        $nota = NotaModel::updateOrCreate(
+            [
+                'estudiante_id' => $payload['estudiante_id'],
+                'materia_id' => $payload['materia_id'],
+                'periodo' => $payload['periodo'],
+            ],
+            [
+                'nota' => $payload['nota'],
+                'estado' => $payload['estado'] ?? (\Illuminate\Support\Facades\Schema::hasColumn('notas','estado') ? NotaModel::ESTADO_BORRADOR : null),
+            ]
+        );
         // Si la petición espera JSON (AJAX/API), devolver JSON. Si es un formulario web, redirigir a la vista de notas.
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json($nota, 201);
@@ -233,12 +256,16 @@ class NotasController extends Controller
         $grupo = $request->query('grupo');
         $materia = $request->query('materia');
 
-        // lista de materias (coincide con la UI)
-        $materias = [
-            1 => 'Matemáticas',
-            2 => 'Lenguaje',
-            3 => 'Ciencias',
-        ];
+        // Lista de materias dinámica (preferir tabla real)
+        if (Schema::hasTable('materias')) {
+            $materias = Materia::orderBy('nombre')->get()->pluck('nombre','id')->toArray();
+        } else {
+            $materias = [
+                1 => 'Matemáticas',
+                2 => 'Lenguaje',
+                3 => 'Ciencias',
+            ];
+        }
 
         // Obtener grupos disponibles (preferir tabla 'grupos')
         if (Schema::hasTable('grupos')) {
@@ -318,10 +345,13 @@ class NotasController extends Controller
             'estudiante_id' => 'sometimes|required|exists:users,id',
             'materia_id' => 'sometimes|required|integer',
             'nota' => 'sometimes|required|numeric|min:0|max:100',
-            'periodo' => 'sometimes|required|string|max:4',
+            'periodo' => 'sometimes|required|in:1,2,3,4',
         ]);
 
-        $nota->update($request->except(['estado','publicado_at','revisado_at','bloqueado']));
+        $data = $request->except(['estado','publicado_at','revisado_at','bloqueado']);
+        if (isset($data['periodo'])) $data['periodo'] = (string)intval($data['periodo']);
+        if (isset($data['nota'])) $data['nota'] = round((float)$data['nota'],2);
+        $nota->update($data);
         return response()->json($nota);
     }
 

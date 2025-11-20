@@ -1,0 +1,366 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+' Reduce DPI to avoid oversized PNGs getting cropped on some renderers
+skinparam dpi 110
+' Hide empty attribute/method compartments to compact the diagram
+hide empty members
+' Scale to a reasonable width to prevent clipping in PNG export; SVG ignores this
+scale 1800 width
+
+package "App\\Http\\Controllers" {
+  class Controller
+
+  class AuthController {
+    + showLoginForm()
+    + login(Request $request)
+    + dashboard()
+    + logout(Request $request)
+  }
+
+  class CrearUsuario {
+    + showRegistrationForm()
+    + register(Request $request)
+  }
+
+  class DocenteController {
+    - puedeGestionar() : bool
+    - esDocenteOPuedeGestionar() : bool
+    + index()
+    + crear()
+    + store(Request $request)
+    + grupos()
+    + verGrupo(int $grupoId)
+    + gestionarNotas(Request $request, int $grupoId, int $materiaId)
+    + asignarNota(Request $request, int $grupoId, int $materiaId)
+  }
+
+  class EstudiantesController {
+    + MostrarEstudiante()
+    - obtenerIniciales(string $nombre) : string
+  }
+
+  class GrupoController {
+    + index()
+    + crear()
+    + guardar(Request $request)
+    + editar(int $id)
+    + actualizar(Request $request, int $id)
+    + eliminar(int $id)
+    + asignar(int $id)
+    + asignarGuardar(Request $request, int $id)
+    # authorizeView()
+  }
+
+  class HorarioController {
+    + index()
+    + store(Request $request)
+  }
+
+  class MateriaController {
+    + index()
+    + crear()
+    + store(Request $request)
+    + editar(Materia $materia)
+    + actualizar(Request $request, Materia $materia)
+    + eliminar(Materia $materia)
+    + asignar()
+  }
+
+  class MatriculaController {
+    + iniciarMatricula()
+    + guardarMatricula(Request $request)
+    + verMisMatriculas()
+    + mostrarMatriculasPendientes()
+    + gestionarMatricula(int $id, string $accion)
+  }
+
+  class NotasController {
+    + index()
+    + crear()
+    + ValidarNota(Request $request)
+    + MostrarNota(int $id)
+    + porEstudiante(int $id)
+    + porGrupo(int $grupoId)
+    + listaGrupos()
+    + estudiantesPorGrupo(int $grupoId)
+    + listaEstudiantes()
+    + filtrar(Request $request)
+    + vistaPublica()
+    + ActualizarNota(Request $request, int $id)
+    + publicar(int $id)
+    + revisar(int $id)
+    + bloquear(int $id)
+    + revertir(int $id)
+    - simpleError(string $msg, int $code=400)
+    - returnAfterTransition($nota, string $msg)
+  }
+
+  class OrientacionCitaController {
+    + index(Request $request)
+    + solicitar(Request $request)
+    + revisar(int $id)
+    + asignar(Request $request, int $id)
+    + reprogramar(Request $request, int $id)
+    + realizar(int $id)
+    + registrarObservaciones(Request $request, int $id)
+    + evaluarSeguimiento(Request $request, int $id)
+    + historial(int $id)
+    + vistaListado()
+    + vistaAdmin(Request $request)
+    - logHistorial(OrientacionCita $cita, $from, $to, string $descripcion=null)
+    - err(string $msg, int $code=400)
+  }
+
+  class ReporteDisciplinaController {
+    + index(Request $request)
+    + mis()
+    + crear()
+    + store(Request $request)
+    + revisar(int $id)
+    + asignarSancion(Request $request, int $id)
+    + notificar(int $id)
+    + solicitarApelacion(Request $request, int $id)
+    + revisarApelacion(int $id)
+    + resolverApelacion(Request $request, int $id)
+    + archivar(int $id)
+    + historial(int $id)
+    - log(ReporteDisciplina $rep, $from, $to, string $descripcion=null)
+    + grupos()
+    + estudiantesGrupo(int $id)
+    - err(string $msg, int $code=400)
+  }
+
+  class RolController {
+    + crear()
+    + guardar(Request $request)
+    + usuariosSinRol()
+    + mostrarFormulario()
+    + mostrar(RolesModel $rol)
+    + editar(RolesModel $rol)
+    + actualizar(Request $request, RolesModel $rol)
+    + eliminar(RolesModel $rol)
+    + asignarRol(Request $request)
+    + removerRol(Request $request)
+    + obtenerUsuariosSinRol()
+    + obtenerRolesSistema()
+    + updates(Request $request)
+    - usuarioPuedeGestionarRoles() : bool
+    - esRolDelSistema(string $nombreRol) : bool
+    - obtenerPermisosDisponibles()
+  }
+
+  class SettingsController {
+    + index(Request $request)
+    + update(Request $request)
+  }
+
+  class UsuarioController {
+    - puedeGestionar() : bool
+    + index()
+    + editar(User $usuario)
+    + actualizar(Request $request, User $usuario)
+    + eliminar(User $usuario)
+    + updates(Request $request)
+  }
+}
+
+package "App\\Models" {
+  class User {
+    + id : int
+    + name : string
+    + email : string
+    + password : string
+    + roles_id : int
+    + grupo_id : int
+    + created_at : datetime
+    + updated_at : datetime
+    + tienePermiso(permiso : string) : bool
+  }
+
+  class RolesModel {
+    + id : int
+    + nombre : string
+    + descripcion : text
+    + permisos : json
+    + created_at : datetime
+    + updated_at : datetime
+    + tienePermiso(permiso : string) : bool
+  }
+
+  class Grupo {
+    + id : int
+    + nombre : string
+    + created_at : datetime
+    + updated_at : datetime
+  }
+
+  class Materia {
+    + id : int
+    + nombre : string
+    + descripcion : string
+    + created_at : datetime
+    + updated_at : datetime
+  }
+
+  class NotaModel {
+    + id : int
+    + estudiante_id : int
+    + materia_id : int
+    + periodo : string
+    + nota : float
+    + estado : string {optional}
+    + publicado_at : datetime {optional}
+    + revisado_at : datetime {optional}
+    + bloqueado : bool {optional}
+    + created_at : datetime
+    + updated_at : datetime
+  }
+
+  class Matricula {
+    + id : int
+    + acudiente_id : int
+    + nombre_estudiante : string
+    + grado : string
+    + telefono_contacto : string
+    + direccion : string
+    + correo_contacto : string
+    + estado : string
+    + created_at : datetime
+    + updated_at : datetime
+  }
+
+  class Horario {
+    + id : int
+    + grupo_id : int
+    + materia_id : int
+    + docente_id : int
+    + dia : string
+    + hora_inicio : time
+    + hora_fin : time
+    + observaciones : string
+    + created_at : datetime
+    + updated_at : datetime
+  }
+
+  class Setting {
+    + key : string
+    + value : string
+    + type : string
+    + updated_by : int
+    + updated_at : datetime
+  }
+
+  class OrientacionCita {
+    + id : int
+    + estudiante_id : int
+    + orientador_id : int {optional}
+    + estado : string
+    + fecha_asignada : date {optional}
+    + hora_asignada : time {optional}
+    + motivo : string
+    + created_at : datetime
+    + updated_at : datetime
+  }
+
+  class OrientacionCitaHistorial {
+    + id : int
+    + cita_id : int
+    + user_id : int {optional}
+    + from : string
+    + to : string
+    + descripcion : string {optional}
+    + created_at : datetime
+  }
+
+  class ReporteDisciplina {
+    + id : int
+    + estudiante_id : int
+    + docente_id : int
+    + coordinador_id : int {optional}
+    + estado : string
+    + gravedad : string {optional}
+    + motivo : text
+    + sancion : text {optional}
+    + notificado_at : datetime {optional}
+    + created_at : datetime
+    + updated_at : datetime
+  }
+
+  class ReporteDisciplinaHistorial {
+    + id : int
+    + reporte_id : int
+    + user_id : int {optional}
+    + from : string
+    + to : string
+    + descripcion : string {optional}
+    + created_at : datetime
+  }
+}
+
+' Inheritance
+AuthController --|> Controller
+CrearUsuario --|> Controller
+DocenteController --|> Controller
+EstudiantesController --|> Controller
+GrupoController --|> Controller
+HorarioController --|> Controller
+MateriaController --|> Controller
+MatriculaController --|> Controller
+NotasController --|> Controller
+OrientacionCitaController --|> Controller
+ReporteDisciplinaController --|> Controller
+RolController --|> Controller
+SettingsController --|> Controller
+UsuarioController --|> Controller
+
+' Controller dependencies on Models
+AuthController ..> User : uses
+AuthController ..> RolesModel : uses
+
+CrearUsuario ..> User : creates
+
+DocenteController ..> User : uses
+DocenteController ..> RolesModel : uses
+DocenteController ..> Grupo : uses
+DocenteController ..> Materia : uses
+DocenteController ..> NotaModel : uses
+
+EstudiantesController ..> User : reads
+
+GrupoController ..> Grupo : manages
+GrupoController ..> User : assigns
+GrupoController ..> RolesModel : reads
+
+HorarioController ..> Horario : manages
+HorarioController ..> Grupo : reads
+HorarioController ..> Materia : reads
+HorarioController ..> User : reads (docentes)
+
+MateriaController ..> Materia : manages
+MateriaController ..> Grupo : reads (for assign)
+
+MatriculaController ..> Matricula : manages
+MatriculaController ..> User : reads/updates
+
+NotasController ..> NotaModel : manages
+NotasController ..> User : reads
+NotasController ..> RolesModel : reads
+
+OrientacionCitaController ..> OrientacionCita : manages
+OrientacionCitaController ..> OrientacionCitaHistorial : logs
+
+ReporteDisciplinaController ..> ReporteDisciplina : manages
+ReporteDisciplinaController ..> ReporteDisciplinaHistorial : logs
+ReporteDisciplinaController ..> Grupo : reads
+
+RolController ..> RolesModel : manages
+RolController ..> User : assigns
+
+SettingsController ..> Setting : manages
+
+UsuarioController ..> User : manages
+UsuarioController ..> RolesModel : reads
+
+@enduml

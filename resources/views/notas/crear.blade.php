@@ -52,8 +52,14 @@
                 <input type="number" name="nota" id="nota" class="form-control form-control-sm" min="0" max="100" step="0.01" required>
             </div>
             <div class="col-md-6">
-                <label for="periodo" class="form-label">Periodo</label>
-                <input type="text" name="periodo" id="periodo" class="form-control form-control-sm" maxlength="4" placeholder="Ej: 2025" required>
+                <label for="periodo" class="form-label">Período</label>
+                <select name="periodo" id="periodo" class="form-select form-select-sm" required>
+                    <option value="">-- Seleccione período --</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
             </div>
             <div class="col-12 d-flex justify-content-end gap-2 mt-2">
                 <a href="{{ route('notas.mostrar') }}" class="btn-pro outline">Cancelar</a>
