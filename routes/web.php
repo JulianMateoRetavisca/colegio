@@ -198,6 +198,15 @@ Route::prefix('matricula')->name('matricula.')->middleware('auth')->group(functi
         return app(MatriculaController::class)->guardarMatricula(request());
     })->name('guardar');
 
+        // Documentos (acudiente)
+        Route::get('/{matricula}/documentos', [MatriculaController::class,'documentosForm'])->name('documentos.form');
+        Route::post('/{matricula}/documentos', [MatriculaController::class,'documentosSubir'])->name('documentos.subir');
+        // Documentos (admin / rector)
+        Route::get('/{matricula}/documentos/admin', [MatriculaController::class,'documentosAdmin'])->name('documentos.admin');
+        // Acciones sobre documento
+        Route::get('/documentos/{documento}/descargar', [MatriculaController::class,'documentoDescargar'])->name('documentos.descargar');
+        Route::delete('/documentos/{documento}', [MatriculaController::class,'documentoEliminar'])->name('documentos.eliminar');
+
 
     // Solo los administradores (1) y rectores (2)
     Route::get('/aceptar', function () {

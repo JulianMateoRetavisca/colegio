@@ -40,6 +40,33 @@ class DocenteController extends Controller
     }
 
     /* ============================================================
+     * HELPERS INTERNOS
+     * ============================================================ */
+
+    /**
+     * Construye un mapa [estudiante_id => [periodo => nota]] para una materia dada
+     * evitando duplicar lógica entre gestionarNotas y resumenNotas.
+     */
+    private function mapaNotasMateria($materiaId, $estudiantesIds) {
+        if (empty($materiaId) || empty($estudiantesIds)) return [];
+
+        $todas = NotaModel::where('materia_id', $materiaId)
+            ->whereIn('estudiante_id', $estudiantesIds)
+            ->get(['estudiante_id','periodo','nota','bloqueado']);
+
+        $mapa = [];
+        foreach ($todas as $n) {
+            $p = (string) intval($n->periodo);
+            if (!in_array($p, ['1','2','3','4'])) continue;
+            $mapa[$n->estudiante_id][$p] = [
+                'nota' => $n->nota,
+                'bloqueado' => (bool)$n->bloqueado
+            ];
+        }
+        return $mapa;
+    }
+
+    /* ============================================================
      * CRUD BÁSICO DE DOCENTES
      * ============================================================ */
 
@@ -113,6 +140,7 @@ class DocenteController extends Controller
         $materia = Materia::findOrFail($materiaId);
 
         $periodoSeleccionado = (string)($request->query('periodo', '1'));
+        if (!in_array($periodoSeleccionado, ['1','2','3','4'])) $periodoSeleccionado = '1';
 
         $idEstudiante = RolesModel::where('nombre','Estudiante')->value('id');
 
@@ -121,28 +149,18 @@ class DocenteController extends Controller
             ->orderBy('name')
             ->get();
 
-        /** Notas del período seleccionado */
-        $notasExistentes = NotaModel::where('materia_id',$materiaId)
-            ->where('periodo',$periodoSeleccionado)
-            ->whereIn('estudiante_id',$estudiantes->pluck('id'))
+        /** Notas del período seleccionado (solo ese periodo) */
+        $notasExistentes = NotaModel::where('materia_id', $materiaId)
+            ->where('periodo', $periodoSeleccionado)
+            ->whereIn('estudiante_id', $estudiantes->pluck('id'))
             ->get()
             ->keyBy('estudiante_id');
 
-        /** Cargar notas de todos los períodos */
-        $periodos  = ['1','2','3','4'];
-        $todasNotas = NotaModel::where('materia_id',$materiaId)
-            ->whereIn('estudiante_id',$estudiantes->pluck('id'))
-            ->get(['estudiante_id','periodo','nota']);
-
-        $mapaNotas = [];
-        foreach ($todasNotas as $n) {
-            $p = (string) intval($n->periodo);
-            if (!in_array($p, ['1','2','3','4'])) continue;
-            $mapaNotas[$n->estudiante_id][$p] = $n->nota;
-        }
+        $periodos = ['1','2','3','4'];
+        $mapaNotas = $this->mapaNotasMateria($materiaId, $estudiantes->pluck('id')->all());
 
         return view('docentes.notas', compact(
-            'grupo','materia','estudiantes','notasExistentes','periodoSeleccionado','mapaNotas'
+            'grupo','materia','estudiantes','notasExistentes','periodoSeleccionado','mapaNotas','periodos'
         ));
     }
 
@@ -168,6 +186,12 @@ class DocenteController extends Controller
         if (!$est)
             return response()->json(['error'=>'Estudiante no pertenece al grupo'],400);
 
+        /** Validar rol estudiante */
+        $idEstudianteRol = RolesModel::where('nombre','Estudiante')->value('id');
+        if ($est->roles_id != $idEstudianteRol) {
+            return response()->json(['error'=>'El usuario indicado no es un estudiante'],400);
+        }
+
         /** Validar materia */
         $materia = Materia::find($materiaId);
         if (!$materia)
@@ -176,16 +200,47 @@ class DocenteController extends Controller
         $periodo = (string) intval($request->periodo);
         $valor   = round((float)$request->nota, 2);
 
-        NotaModel::updateOrCreate(
+        $notaRegistro = NotaModel::where('estudiante_id', $request->estudiante_id)
+            ->where('materia_id', $materiaId)
+            ->where('periodo', $periodo)
+            ->first();
+
+        if ($notaRegistro && $notaRegistro->bloqueado) {
+            return response()->json(['error'=>'La nota está bloqueada y no puede modificarse'],403);
+        }
+
+        $actual = NotaModel::updateOrCreate(
             [
                 'estudiante_id' => $request->estudiante_id,
                 'materia_id'    => $materiaId,
                 'periodo'       => $periodo
             ],
-            ['nota' => $valor]
+            [
+                'nota' => $valor
+            ]
         );
 
-        return response()->json(['success'=>'Nota asignada correctamente']);
+        $notasEstudiante = NotaModel::where('materia_id',$materiaId)
+            ->where('estudiante_id',$request->estudiante_id)
+            ->get(['periodo','nota','bloqueado'])
+            ->mapWithKeys(function($n){
+                $p = (string) intval($n->periodo);
+                return [$p => [
+                    'nota' => $n->nota,
+                    'bloqueado' => (bool)$n->bloqueado
+                ]];
+            });
+
+        return response()->json([
+            'success' => 'Nota asignada correctamente',
+            'registro' => [
+                'estudiante_id' => $actual->estudiante_id,
+                'materia_id'    => $actual->materia_id,
+                'periodo'       => $actual->periodo,
+                'nota'          => $actual->nota
+            ],
+            'notas_periodos' => $notasEstudiante
+        ]);
     }
 
     /* ============================================================
@@ -214,15 +269,7 @@ class DocenteController extends Controller
                 ->get();
 
             if ($estudiantes->isNotEmpty()) {
-                $todasNotas = NotaModel::where('materia_id',$materiaSeleccionada)
-                    ->whereIn('estudiante_id',$estudiantes->pluck('id'))
-                    ->get(['estudiante_id','periodo','nota']);
-
-                foreach ($todasNotas as $n) {
-                    $p = (string) intval($n->periodo);
-                    if (!in_array($p, ['1','2','3','4'])) continue;
-                    $mapaNotas[$n->estudiante_id][$p] = $n->nota;
-                }
+                $mapaNotas = $this->mapaNotasMateria($materiaSeleccionada, $estudiantes->pluck('id')->all());
             }
         }
 

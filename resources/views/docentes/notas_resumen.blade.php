@@ -63,8 +63,9 @@
                                 @php
                                     $sum = 0; $count = 0; $vals = [];
                                     foreach($periodos as $p){
-                                        $v = $mapaNotas[$est->id][$p] ?? null;
-                                        $vals[$p] = $v;
+                                        $registro = $mapaNotas[$est->id][$p] ?? null;
+                                        $v = $registro['nota'] ?? null;
+                                        $vals[$p] = $registro; // guardamos arreglo completo para colores/estado
                                         if($v !== null){ $sum += (float)$v; $count++; }
                                     }
                                     $prom = $count>0 ? number_format($sum/$count,2) : '—';
@@ -73,10 +74,10 @@
                                     <td>{{ $i+1 }}</td>
                                     <td><strong>{{ $est->name }}</strong><br><small class="text-muted">{{ $est->email }}</small></td>
                                     @foreach($periodos as $p)
-                                        @php $v = $vals[$p]; @endphp
+                                        @php $registro = $vals[$p]; $v = $registro['nota'] ?? null; $bloq = $registro['bloqueado'] ?? false; @endphp
                                         <td>
                                             @if($v !== null)
-                                                <span class="badge bg-info">{{ $v }}</span>
+                                                <span class="badge {{ $bloq ? 'bg-secondary' : 'bg-info' }}" title="{{ $bloq ? 'Bloqueado' : 'Nota registrada' }}">{{ $v }}</span>
                                             @else
                                                 <span class="text-muted">—</span>
                                             @endif

@@ -2,6 +2,9 @@
 
 @section('title', 'Iniciar Sesión - Colegio')
 
+@section('hide_navbar')@endsection
+@section('hide_sidebar')@endsection
+
 @section('content')
 <div class="login-container d-flex align-items-center justify-content-center">
     <div class="container">

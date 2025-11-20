@@ -78,10 +78,10 @@
                                         <strong>{{ $estudiante->name }}</strong><br>
                                         <small class="text-muted">{{ $estudiante->email }}</small>
                                     </td>
-                                    <td><span id="cell-1-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['1']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['1'] ?? '—' }}</span></td>
-                                    <td><span id="cell-2-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['2']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['2'] ?? '—' }}</span></td>
-                                    <td><span id="cell-3-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['3']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['3'] ?? '—' }}</span></td>
-                                    <td><span id="cell-4-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['4']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['4'] ?? '—' }}</span></td>
+                                    <td><span id="cell-1-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['1']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['1']['nota'] ?? '—' }}</span></td>
+                                    <td><span id="cell-2-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['2']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['2']['nota'] ?? '—' }}</span></td>
+                                    <td><span id="cell-3-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['3']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['3']['nota'] ?? '—' }}</span></td>
+                                    <td><span id="cell-4-{{ $estudiante->id }}" class="badge {{ isset($mapaNotas[$estudiante->id]['4']) ? 'bg-info' : 'bg-secondary' }}">{{ $mapaNotas[$estudiante->id]['4']['nota'] ?? '—' }}</span></td>
                                     <td>
                                         <input type="number" 
                                                class="form-control nota-input" 
@@ -94,8 +94,8 @@
                                     </td>
                                     <td>
                                         <button type="button" 
-                                                class="btn btn-sm btn-success"
-                                                onclick="guardarNota({{ $estudiante->id }})">
+                                            class="btn btn-sm btn-success"
+                                            onclick="guardarNota({{ $estudiante->id }}, this)">
                                             <i class="fas fa-save"></i>
                                         </button>
                                         <button type="button" 
@@ -168,26 +168,25 @@ function cargarNotas() {
     window.location.href = url.toString();
 }
 
-function guardarNota(estudianteId) {
+function guardarNota(estudianteId, btn) {
     const notaInput = document.getElementById(`nota-${estudianteId}`);
     const nota = notaInput.value;
     const periodo = document.getElementById('periodo').value;
-    
+
     if (!nota || nota < 0 || nota > 100) {
         alert('Por favor, ingresa una nota válida (0-100)');
         return;
     }
-    
-    // Mostrar indicador de carga
-    const btn = event.target.closest('button');
-    const originalText = btn.innerHTML;
+
+    const originalHTML = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     btn.disabled = true;
-    
+
     fetch(`{{ route('docentes.grupos.notas.asignar', [$grupo->id, $materia->id]) }}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         body: JSON.stringify({
@@ -196,32 +195,38 @@ function guardarNota(estudianteId) {
             periodo: periodo
         })
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
-            // Actualizar la celda del período correspondiente
-            const cell = document.getElementById(`cell-${periodo}-${estudianteId}`);
-            if (cell) {
-                cell.textContent = nota;
-                cell.className = 'badge bg-success';
+            // Actualizar todas las celdas del estudiante si vienen en la respuesta
+            if (data.notas_periodos) {
+                Object.keys(data.notas_periodos).forEach(p => {
+                    const cell = document.getElementById(`cell-${p}-${estudianteId}`);
+                    if (cell) {
+                        cell.textContent = data.notas_periodos[p].nota;
+                        cell.className = 'badge bg-success';
+                    }
+                });
+            } else {
+                // Fallback por si el backend aún no envía mapa completo
+                const cell = document.getElementById(`cell-${periodo}-${estudianteId}`);
+                if (cell) { cell.textContent = nota; cell.className = 'badge bg-success'; }
             }
-            
-            // Limpiar el input
+            // Refrescar la vista de resumen si está abierta en otra pestaña (opcional broadcast simple)
+            window.localStorage.setItem('notas_actualizadas', Date.now());
             notaInput.value = '';
-            
-            // Mostrar mensaje de éxito
             showAlert('Nota guardada correctamente', 'success');
             showToast('Nota guardada correctamente');
         } else {
             showAlert(data.error || 'Error al guardar la nota', 'danger');
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
+    .catch(err => {
+        console.error(err);
         showAlert('Error al guardar la nota', 'danger');
     })
     .finally(() => {
-        btn.innerHTML = originalText;
+        btn.innerHTML = originalHTML;
         btn.disabled = false;
     });
 }
@@ -266,6 +271,7 @@ function guardarTodasNotas() {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
                     body: JSON.stringify({

@@ -2,6 +2,9 @@
 
 @section('title', 'Registrar Usuario - Colegio')
 
+@section('hide_navbar')@endsection
+@section('hide_sidebar')@endsection
+
 @section('content')
 <style>
     body {
