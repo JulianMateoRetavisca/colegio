@@ -11,8 +11,18 @@
         </div>
         <div class="action-bar">
             <a href="{{ route('notas.guardar') }}" class="btn-pro primary"><i class="fas fa-plus me-1"></i>Nueva Nota</a>
+                        @if(isset($isStudent) && $isStudent)
+                        <button type="button" id="refreshNotasBtn" class="btn-pro outline" title="Actualizar listado"><i class="fas fa-sync"></i></button>
+                        @endif
         </div>
     </div>
+
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
 
     <div id="controls" class="my-3">
         <!-- El select se renderiza por JS cuando el usuario tiene permiso -->
@@ -211,23 +221,25 @@ document.addEventListener('DOMContentLoaded', function(){
         // Si hay un control de materia para estudiante, enlazarlo a la búsqueda por usuario
         try {
             const stuSelect = document.getElementById('studentMateriaFilter');
+            const uid = '{{ $currentUserId ?? '' }}';
+            const triggerFetch = function(){
+                const mid = (document.getElementById('studentMateriaFilter') || {}).value || '';
+                const params = new URLSearchParams();
+                if (mid) params.append('materia', mid);
+                if (uid) params.append('usuario', uid);
+                const url = '{{ route('notas.filtros') }}' + (params.toString() ? ('?' + params.toString()) : '');
+                showDebug('Solicitando (estudiante): ' + url);
+                notasTableBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+                fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                    .then(data => renderNotas(data))
+                    .catch(err => { console.error(err); showDebug('Error: ' + err.message); notasTableBody.innerHTML = '<tr><td colspan="4">Error al cargar notas</td></tr>'; });
+            };
             if (stuSelect) {
-                stuSelect.addEventListener('change', function(){
-                    const mid = stuSelect.value;
-                    const params = new URLSearchParams();
-                    if (mid) params.append('materia', mid);
-                    // enviar usuario actual desde server (currentUserId)
-                    const uid = '{{ $currentUserId ?? '' }}';
-                    if (uid) params.append('usuario', uid);
-                    const url = '{{ route('notas.filtros') }}' + (params.toString() ? ('?' + params.toString()) : '');
-                    showDebug('Solicitando (estudiante): ' + url);
-                    notasTableBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
-                    fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
-                        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-                        .then(data => renderNotas(data))
-                        .catch(err => { console.error(err); showDebug('Error: ' + err.message); notasTableBody.innerHTML = '<tr><td colspan="4">Error al cargar notas</td></tr>'; });
-                });
+                stuSelect.addEventListener('change', triggerFetch);
             }
+            // Carga inicial automática de notas del estudiante autenticado
+            triggerFetch();
         } catch(e) { console.error(e); }
     } else {
         // Primero intentar cargar grupos (si existen) y luego estudiantes por grupo.
@@ -594,11 +606,24 @@ document.addEventListener('DOMContentLoaded', function(){
             notasTableBody.innerHTML = '<tr><td colspan="4">No hay notas registradas</td></tr>';
             return;
         }
+        let sum = 0, count = 0;
         data.forEach(n => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${escapeHtml(n.materia_id || 'N/A')}</td><td>${escapeHtml(n.periodo)}</td><td>${escapeHtml(n.nota)}</td><td>${escapeHtml(n.estudiante?.name || '')}</td>`;
+            const estado = n.estado || 'borrador';
+            tr.innerHTML = `<td>${escapeHtml(n.materia_id || 'N/A')}</td>
+                            <td>${escapeHtml(n.periodo)}</td>
+                            <td>${escapeHtml(n.nota)}</td>
+                            <td>${escapeHtml(estado)}</td>
+                            <td>${escapeHtml(n.estudiante?.name || '')}</td>`;
             notasTableBody.appendChild(tr);
+            if (!isNaN(parseFloat(n.nota))) { sum += parseFloat(n.nota); count++; }
         });
+        if (count > 0) {
+          const avg = (sum / count).toFixed(2);
+          const avgRow = document.createElement('tr');
+          avgRow.innerHTML = `<td colspan="2" class="fw-bold">Promedio</td><td class="fw-bold">${avg}</td><td colspan="2"></td>`;
+          notasTableBody.appendChild(avgRow);
+        }
     }
 
     function renderGroupedByMateria(notes, materiaFilter) {
@@ -625,12 +650,20 @@ document.addEventListener('DOMContentLoaded', function(){
             th.innerHTML = `<td colspan="4" class="fw-bold bg-light">${escapeHtml(matName)}</td>`;
             notasTableBody.appendChild(th);
             // Rows for notes in this materia
+            let sum = 0, count = 0;
             groups[key].forEach(n => {
                 const tr = document.createElement('tr');
                 const matName = materias[n.materia_id] || n.materia_id || 'N/A';
                 tr.innerHTML = `<td>${escapeHtml(matName)}</td><td>${escapeHtml(n.periodo)}</td><td>${escapeHtml(n.nota)}</td><td>${escapeHtml(n.estudiante?.name || '')}</td>`;
                 notasTableBody.appendChild(tr);
+                if (!isNaN(parseFloat(n.nota))) { sum += parseFloat(n.nota); count++; }
             });
+            if (count > 0) {
+              const avg = (sum / count).toFixed(2);
+              const avgRow = document.createElement('tr');
+              avgRow.innerHTML = `<td colspan="2" class="text-end">Promedio ${escapeHtml(matName)}</td><td class="fw-bold">${avg}</td><td></td>`;
+              notasTableBody.appendChild(avgRow);
+            }
         });
     }
 
@@ -641,6 +674,15 @@ document.addEventListener('DOMContentLoaded', function(){
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    // Botón manual de refresco (para estudiantes)
+    const refreshBtn = document.getElementById('refreshNotasBtn');
+    if (refreshBtn && window.studentControls) {
+        refreshBtn.addEventListener('click', function(){
+            const stuSelect = document.getElementById('studentMateriaFilter');
+            if (stuSelect) stuSelect.dispatchEvent(new Event('change'));
+        });
     }
 });
 </script>

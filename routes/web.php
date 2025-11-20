@@ -155,6 +155,8 @@ Route::prefix('docentes')->name('docentes.')->middleware('auth')->group(function
     Route::get('/grupos/{grupo}', [App\Http\Controllers\DocenteController::class, 'verGrupo'])->name('grupos.ver');
     Route::get('/grupos/{grupo}/materia/{materia}', [App\Http\Controllers\DocenteController::class, 'gestionarNotas'])->name('grupos.notas');
     Route::post('/grupos/{grupo}/materia/{materia}/asignar', [App\Http\Controllers\DocenteController::class, 'asignarNota'])->name('grupos.notas.asignar');
+    // Resumen de notas por periodo (solo lectura)
+    Route::get('/notas-resumen', [App\Http\Controllers\DocenteController::class, 'resumenNotas'])->name('notas.resumen');
 });
 
 //ruta para usuarios sin rol

@@ -77,6 +77,7 @@
             min-height: calc(100vh - 56px);
         }
         .app-main { padding-top: var(--navbar-height); }
+        .app-main.no-navbar { padding-top:0; }
     </style>
     
     <link rel="stylesheet" href="{{ asset('css/admin-theme.css') }}">
@@ -92,7 +93,7 @@
             @include('partials.sidebar')
         @endunless
     @endauth
-    <main class="app-main @auth {{ View::hasSection('hide_sidebar') ? '' : 'with-sidebar' }} @endauth">
+    <main class="app-main @auth {{ View::hasSection('hide_sidebar') ? '' : 'with-sidebar' }} @endauth {{ !Auth::check() || View::hasSection('hide_navbar') ? 'no-navbar' : '' }}">
         @yield('content')
     </main>
     

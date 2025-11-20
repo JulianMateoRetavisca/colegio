@@ -37,7 +37,10 @@ class OrientacionCitaController extends Controller
             'motivo' => $request->motivo
         ]);
         $this->logHistorial($cita,null,OrientacionCita::ESTADO_SOLICITADA,'Solicitud creada');
-        return response()->json($cita,201);
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json($cita,201);
+        }
+        return redirect()->route('orientacion.citas.vista')->with('ok','Solicitud enviada correctamente');
     }
 
     // Orientador revisa solicitud

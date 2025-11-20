@@ -1,0 +1,276 @@
+Project colegio {
+  database_type: "PostgreSQL"
+  Note: 'DBML generated from migrations to use in dbdiagram.io'
+}
+
+Table roles {
+  id bigint [pk, increment]
+  nombre varchar(255) [unique]
+  descripcion varchar(255) [null]
+  permisos text [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table users {
+  id bigint [pk, increment]
+  name varchar(255)
+  email varchar(255) [unique]
+  email_verified_at timestamp [null]
+  password varchar(255)
+  remember_token varchar(100) [null]
+  roles_id bigint [ref: > roles.id, null]
+  grupo_id bigint [ref: > grupos.id, null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table grupos {
+  id bigint [pk, increment]
+  nombre varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table materias {
+  id bigint [pk, increment]
+  nombre varchar(255) [unique]
+  descripcion text [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table grupo_materia {
+  id bigint [pk, increment]
+  grupo_id bigint
+  materia_id bigint
+  created_at timestamp
+  updated_at timestamp
+
+  Indexes {
+    (grupo_id, materia_id) [unique]
+  }
+}
+
+Table notas {
+  id bigint [pk, increment]
+  estudiante_id bigint
+  materia_id bigint
+  nota decimal(5,2)
+  periodo varchar(4)
+  estado varchar(20) [default: 'borrador', note: 'optional in some environments']
+  publicado_at timestamp [null]
+  revisado_at timestamp [null]
+  bloqueado boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table horarios {
+  id bigint [pk, increment]
+  grupo_id bigint [null]
+  materia_id bigint [null]
+  docente_id bigint [null]
+  dia varchar(50)
+  hora_inicio time [null]
+  hora_fin time [null]
+  observaciones varchar(255) [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table matriculas {
+  id bigint [pk, increment]
+  acudiente_id bigint
+  nombre_estudiante varchar(100)
+  grado varchar(50)
+  telefono_contacto varchar(15)
+  direccion varchar(150)
+  correo_contacto varchar(100)
+  estado varchar(20) [default: 'pendiente']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table settings {
+  id bigint [pk, increment]
+  key varchar(255) [unique]
+  value text [null]
+  type varchar(50) [null]
+  updated_by bigint [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table orientacion_citas {
+  id bigint [pk, increment]
+  estudiante_id bigint
+  orientador_id bigint [null]
+  estado varchar(30)
+  fecha_solicitada date [null]
+  fecha_asignada date [null]
+  hora_asignada time [null]
+  motivo varchar(180) [null]
+  observaciones text [null]
+  seguimiento_requerido boolean [default: false]
+  fecha_proxima date [null]
+  cerrada_at timestamp [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table orientacion_cita_historials {
+  id bigint [pk, increment]
+  cita_id bigint
+  user_id bigint [null]
+  estado_from varchar(30) [null]
+  estado_to varchar(30)
+  descripcion text [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table reportes_disciplina {
+  id bigint [pk, increment]
+  estudiante_id bigint
+  docente_id bigint
+  coordinador_id bigint [null]
+  estado varchar(50)
+  descripcion_incidente text
+  gravedad varchar(20) [null]
+  sancion_text text [null]
+  sancion_activa boolean [default: false]
+  sancion_asignada_at timestamp [null]
+  notificado_at timestamp [null]
+  apelacion_motivo text [null]
+  apelacion_result varchar(20) [null]
+  apelacion_resuelta_at timestamp [null]
+  sancion_modificada_at timestamp [null]
+  sancion_eliminada_at timestamp [null]
+  archivado_at timestamp [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table reportes_disciplina_historial {
+  id bigint [pk, increment]
+  reporte_id bigint
+  user_id bigint [null]
+  estado_from varchar(50) [null]
+  estado_to varchar(50)
+  descripcion text [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+# --- System and additional tables created by migrations ---
+
+Table password_reset_tokens {
+  email varchar(255) [pk]
+  token varchar(255)
+  created_at timestamp [null]
+}
+
+Table sessions {
+  id varchar(255) [pk]
+  user_id bigint [index, null]
+  ip_address varchar(45) [null]
+  user_agent text [null]
+  payload text
+  last_activity int [index]
+}
+
+Table cache {
+  key varchar(255) [pk]
+  value text
+  expiration int
+}
+
+Table cache_locks {
+  key varchar(255) [pk]
+  owner varchar(255)
+  expiration int
+}
+
+Table jobs {
+  id bigint [pk, increment]
+  queue varchar(255) [index]
+  payload text
+  attempts int
+  reserved_at int [null]
+  available_at int
+  created_at int
+}
+
+Table job_batches {
+  id varchar(255) [pk]
+  name varchar(255)
+  total_jobs int
+  pending_jobs int
+  failed_jobs int
+  failed_job_ids text
+  options text [null]
+  cancelled_at int [null]
+  created_at int
+  finished_at int [null]
+}
+
+Table failed_jobs {
+  id bigint [pk, increment]
+  uuid varchar(255) [unique]
+  connection text
+  queue text
+  payload text
+  exception text
+  failed_at timestamp
+}
+
+Table orientacion_citas_historial {
+  id bigint [pk, increment]
+  cita_id bigint
+  user_id bigint [null]
+  estado_from varchar(30) [null]
+  estado_to varchar(30)
+  descripcion varchar(255) [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table nota_historial {
+  id bigint [pk, increment]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// Inline refs already defined on users.roles_id and users.grupo_id
+// Removed duplicate explicit Refs to avoid "References with same endpoints exist"
+
+Ref: notas.estudiante_id > users.id
+Ref: notas.materia_id > materias.id
+
+Ref: grupo_materia.grupo_id > grupos.id
+Ref: grupo_materia.materia_id > materias.id
+
+Ref: horarios.grupo_id > grupos.id
+Ref: horarios.materia_id > materias.id
+Ref: horarios.docente_id > users.id
+
+Ref: matriculas.acudiente_id > users.id
+
+Ref: settings.updated_by > users.id
+
+Ref: orientacion_citas.estudiante_id > users.id
+Ref: orientacion_citas.orientador_id > users.id
+Ref: orientacion_cita_historials.cita_id > orientacion_citas.id
+Ref: orientacion_cita_historials.user_id > users.id
+
+Ref: orientacion_citas_historial.cita_id > orientacion_citas.id
+Ref: orientacion_citas_historial.user_id > users.id
+
+Ref: reportes_disciplina.estudiante_id > users.id
+Ref: reportes_disciplina.docente_id > users.id
+Ref: reportes_disciplina.coordinador_id > users.id
+Ref: reportes_disciplina_historial.reporte_id > reportes_disciplina.id
+Ref: reportes_disciplina_historial.user_id > users.id
+
+Ref: sessions.user_id > users.id
